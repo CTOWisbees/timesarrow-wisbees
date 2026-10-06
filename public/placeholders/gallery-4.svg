@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-label="Event photo 4 placeholder">
+  <defs>
+    <pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="28" stroke="#0F6B4C" stroke-opacity="0.07" stroke-width="10"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="440" fill="#DCE7DD"/>
+  <rect width="640" height="440" fill="url(#p)"/>
+  <g fill="none" stroke="#0F6B4C" stroke-opacity="0.55" stroke-width="2.933333333333333" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="267.2" y="169.84" width="105.6" height="79.19999999999999" rx="7.392"/>
+    <circle cx="296.24" cy="193.6" r="8.448"/>
+    <path d="M275.12 241.12 L309.44 212.08 L330.56 227.92 L346.4 209.44 L364.88 241.12"/>
+  </g>
+  <text x="320" y="275.44" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13.728" font-weight="600" fill="#0F6B4C" fill-opacity="0.7">Event photo 4</text>
+</svg>

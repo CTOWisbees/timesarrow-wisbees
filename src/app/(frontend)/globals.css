@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark styles only apply under a .dark class, never from the OS setting (light-only site for now). */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * WisBees design tokens, sampled from the Figma landing page.
+ * Light theme only for the marketing site. shadcn components read the
+ * semantic variables below, so restyling happens here, not in components.
+ */
+:root {
+  --brand-green: #0f6b4c;
+  --brand-green-strong: #0b5a3f;
+  --brand-ink: #10221b;
+  --brand-ink-soft: #3d4a44;
+  --brand-paper: #f6f6f1;
+  --brand-mist: #f3f5f0;
+  --brand-mint: #e8f0e6;
+  --brand-mint-strong: #d5e6d6;
+  --brand-amber: #f2b53a;
+  --brand-amber-soft: #fff4de;
+  --brand-amber-line: #f0c77a;
+  --brand-amber-ink: #7a4b00;
+  --brand-night: #0f201a;
+  --brand-night-line: #2a3a33;
+
+  --background: var(--brand-paper);
+  --foreground: var(--brand-ink);
+  --card: #ffffff;
+  --card-foreground: var(--brand-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-ink);
+  --primary: var(--brand-green);
+  --primary-foreground: #ffffff;
+  --secondary: var(--brand-mint);
+  --secondary-foreground: var(--brand-green-strong);
+  --muted: var(--brand-mist);
+  --muted-foreground: #5b6762;
+  --accent: var(--brand-mint);
+  --accent-foreground: var(--brand-ink);
+  --destructive: #b42318;
+  --border: #dfe3dc;
+  --input: #cfd5cd;
+  --ring: var(--brand-green);
+  --chart-1: var(--brand-green);
+  --chart-2: var(--brand-mint-strong);
+  --radius: 0.625rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-strong: var(--brand-green-strong);
+  --color-ink: var(--brand-ink);
+  --color-ink-soft: var(--brand-ink-soft);
+  --color-paper: var(--brand-paper);
+  --color-mist: var(--brand-mist);
+  --color-mint: var(--brand-mint);
+  --color-mint-strong: var(--brand-mint-strong);
+  --color-amber: var(--brand-amber);
+  --color-amber-soft: var(--brand-amber-soft);
+  --color-amber-line: var(--brand-amber-line);
+  --color-amber-ink: var(--brand-amber-ink);
+  --color-night: var(--brand-night);
+  --color-night-line: var(--brand-night-line);
+
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-source-serif), ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply scroll-smooth font-sans antialiased;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading text-ink;
+    text-wrap: balance;
+    font-optical-sizing: auto;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-[75rem] px-4 sm:px-6 lg:px-8;
+  }
+}
