@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="240" viewBox="0 0 560 240" role="img" aria-label="Onboarding illustration placeholder">
+  <defs>
+    <pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="28" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="10"/>
+    </pattern>
+  </defs>
+  <rect width="560" height="240" rx="16" fill="#FFFFFF" fill-opacity="0.06"/>
+  <rect width="560" height="240" rx="16" fill="url(#p)"/>
+  <rect x="0.5" y="0.5" width="559" height="239" rx="15.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-dasharray="6 6"/>
+  <g fill="none" stroke="#E8F0E6" stroke-opacity="0.7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="248" y="72" width="64" height="48" rx="6"/>
+    <circle cx="266" cy="88" r="5"/>
+    <path d="M250 116l18-16 12 10 10-8 20 14"/>
+  </g>
+  <text x="280" y="152" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#E8F0E6" fill-opacity="0.85">Illustration placeholder</text>
+  <text x="280" y="174" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#E8F0E6" fill-opacity="0.6">Upload in CMS · Login and onboarding → Left panel</text>
+</svg>

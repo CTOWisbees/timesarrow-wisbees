@@ -26,7 +26,7 @@ export function MobileNav({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-lg" className="md:hidden" aria-label="Open menu">
+        <Button variant="ghost" size="icon-lg" className="lg:hidden" aria-label="Open menu">
           <Menu className="size-6" />
         </Button>
       </SheetTrigger>
@@ -52,7 +52,8 @@ export function MobileNav({
           </ul>
         </nav>
         {loginCta?.href && (
-          <div className="border-t p-4">
+          // Tablets keep Login / Sign up in the header bar, so the drawer only repeats it on phones.
+          <div className="border-t p-4 md:hidden">
             <Button asChild size="cta" className="w-full">
               <Link href={loginCta.href} {...linkProps(loginCta.href)} onClick={close}>
                 {loginCta.label}

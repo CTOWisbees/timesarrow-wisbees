@@ -47,6 +47,15 @@
   --chart-1: var(--brand-green);
   --chart-2: var(--brand-mint-strong);
   --radius: 0.625rem;
+
+  /* Sticky header height; the hero subtracts it to fit the first screen exactly. */
+  --header-h: 4rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --header-h: 5rem;
+  }
 }
 
 @theme inline {
@@ -86,8 +95,9 @@
   --color-night: var(--brand-night);
   --color-night-line: var(--brand-night-line);
 
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
+  --font-serif: var(--font-lora), Lora, Georgia, Times, serif;
+  --font-heading: var(--font-serif);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -97,13 +107,16 @@
   --radius-3xl: calc(var(--radius) * 2.2);
 }
 
+/* Laptops with little height (1280×720 and similar): the app pages tighten up to fit. */
+@custom-variant short (@media (min-width: 1024px) and (max-height: 820px));
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   html {
     @apply scroll-smooth font-sans antialiased;
-    scroll-padding-top: 5rem;
+    scroll-padding-top: var(--header-h);
   }
   body {
     @apply bg-background text-foreground;
@@ -111,7 +124,6 @@
   h1, h2, h3, h4 {
     @apply font-heading text-ink;
     text-wrap: balance;
-    font-optical-sizing: auto;
   }
   p {
     text-wrap: pretty;
@@ -130,5 +142,15 @@
 @layer utilities {
   .container-page {
     @apply mx-auto w-full max-w-[75rem] px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Gallery slideshow: fills the active thumbnail's bar over one interval. */
+@keyframes gallery-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
   }
 }

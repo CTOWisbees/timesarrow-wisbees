@@ -18,15 +18,6 @@ export function Section({ tone = 'paper', bleed, className, children, ...props }
   )
 }
 
-export function Eyebrow({ children, className }: { children?: string | null; className?: string }) {
-  if (!children) return null
-  return (
-    <p className={cn('text-primary text-xs font-semibold tracking-[0.14em] uppercase', className)}>
-      {children}
-    </p>
-  )
-}
-
 /** Headline copy from the CMS: line breaks typed by editors become line breaks on the page. */
 export function Lines({ text }: { text?: string | null }) {
   const lines = (text ?? '').split('\n').filter(Boolean)

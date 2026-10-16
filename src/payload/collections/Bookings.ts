@@ -12,7 +12,7 @@ export const Bookings: CollectionConfig = {
   labels: { singular: 'Call booking', plural: 'Call bookings' },
   admin: {
     useAsTitle: 'email',
-    defaultColumns: ['firstName', 'lastName', 'mobile', 'preferredSlot', 'status', 'createdAt'],
+    defaultColumns: ['fullName', 'mobile', 'email', 'preferredSlot', 'status', 'createdAt'],
     group: 'Leads',
     description: 'Requests from the "Talk to an expert" form on the home page.',
   },
@@ -24,13 +24,7 @@ export const Bookings: CollectionConfig = {
     delete: ({ req }) => hasRole(req.user, 'admin'),
   },
   fields: [
-    {
-      type: 'row',
-      fields: [
-        { name: 'firstName', type: 'text', required: true },
-        { name: 'lastName', type: 'text', required: true },
-      ],
-    },
+    { name: 'fullName', type: 'text', required: true },
     {
       type: 'row',
       fields: [
@@ -38,7 +32,7 @@ export const Bookings: CollectionConfig = {
         { name: 'email', type: 'email', required: true },
       ],
     },
-    { name: 'preferredSlot', type: 'text', admin: { description: 'Day and time picked by the visitor.' } },
+    { name: 'preferredSlot', type: 'text', admin: { description: 'Day and time picked by the visitor (optional step 2).' } },
     {
       name: 'status',
       type: 'select',
@@ -65,6 +59,8 @@ export const Bookings: CollectionConfig = {
         { name: 'consentAt', type: 'date', required: true, admin: { readOnly: true } },
         { name: 'source', type: 'text', admin: { readOnly: true } },
         { name: 'ipHash', type: 'text', admin: { readOnly: true, hidden: true }, index: true },
+        // Hash of the one-time token that lets the visitor add a slot in step 2. Cleared once used.
+        { name: 'slotTokenHash', type: 'text', admin: { hidden: true }, index: true },
       ],
     },
   ],

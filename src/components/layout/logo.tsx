@@ -4,7 +4,7 @@ import { CmsImage } from '@/components/shared/cms-image'
 import { cn } from '@/lib/utils'
 import type { Media } from '@/payload-types'
 
-/** Uploaded logo from Site settings, or a typographic wordmark until one is uploaded. */
+/** Official logo (public/brand), unless a different one is uploaded in Site settings. */
 export function Logo({
   logo,
   siteName,
@@ -14,26 +14,17 @@ export function Logo({
   siteName: string
   className?: string
 }) {
-  const hasLogo = typeof logo === 'object' && logo?.url
   return (
-    <Link href="/" aria-label={`${siteName} home`} className={cn('inline-flex items-center', className)}>
-      {hasLogo ? (
-        <CmsImage
-          media={logo}
-          fallbackSrc=""
-          fallbackAlt={siteName}
-          height={40}
-          width={140}
-          className="h-10 w-auto"
-          priority
-        />
-      ) : (
-        <span className="font-heading text-2xl font-semibold tracking-tight">
-          <span className="text-amber">W</span>
-          <span className="text-brand-green">is</span>
-          <span className="text-ink">Bees</span>
-        </span>
-      )}
+    <Link href="/" aria-label={`${siteName} home`} className={cn('inline-flex shrink-0 items-center', className)}>
+      <CmsImage
+        media={logo}
+        fallbackSrc="/brand/wisbees-logo.png"
+        fallbackAlt={siteName}
+        width={297}
+        height={109}
+        priority
+        className="h-9 w-auto md:h-10"
+      />
     </Link>
   )
 }

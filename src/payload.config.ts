@@ -6,6 +6,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { Applications } from './payload/collections/Applications'
 import { Bookings } from './payload/collections/Bookings'
 import { Faqs } from './payload/collections/Faqs'
 import { GalleryItems } from './payload/collections/GalleryItems'
@@ -13,6 +14,10 @@ import { Media } from './payload/collections/Media'
 import { ModelPortfolios } from './payload/collections/ModelPortfolios'
 import { Users } from './payload/collections/Users'
 import { HomePage } from './payload/globals/HomePage'
+import { Onboarding } from './payload/globals/Onboarding'
+import { PortfolioScan } from './payload/globals/PortfolioScan'
+import { RiskProfile } from './payload/globals/RiskProfile'
+import { ScanConfig } from './payload/globals/ScanConfig'
 import { SebiDisclosure } from './payload/globals/SebiDisclosure'
 import { SiteSettings } from './payload/globals/SiteSettings'
 
@@ -23,20 +28,44 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 // uploads fall back to the ./media folder on disk.
 const useS3 = Boolean(process.env.S3_ENDPOINT && process.env.S3_ACCESS_KEY_ID)
 
+function isLocalDatabase(uri?: string) {
+  try {
+    return ['localhost', '127.0.0.1', '::1'].includes(new URL(uri ?? '').hostname)
+  } catch {
+    return false
+  }
+}
+
 const previewUrl = (pathname: string) => `${siteUrl}/api/preview?path=${encodeURIComponent(pathname)}`
 
 export default buildConfig({
   serverURL: siteUrl,
   admin: {
     user: Users.slug,
-    meta: { titleSuffix: ' · WisBees CMS' },
+    meta: {
+      titleSuffix: ' · WisBees CMS',
+      icons: [
+        { rel: 'icon', type: 'image/png', url: '/brand/wisbees-mark.png' },
+        { rel: 'apple-touch-icon', url: '/apple-icon.png' },
+      ],
+    },
+    components: {
+      graphics: {
+        Logo: '/payload/components/AdminBrand#AdminLogo',
+        Icon: '/payload/components/AdminBrand#AdminIcon',
+      },
+    },
     importMap: { baseDir: path.resolve(dirname) },
   },
-  collections: [ModelPortfolios, Faqs, GalleryItems, Media, Bookings, Users],
+  collections: [ModelPortfolios, Faqs, GalleryItems, Media, Bookings, Applications, Users],
   globals: [
     { ...HomePage, admin: { ...HomePage.admin, preview: () => previewUrl('/') } },
     SiteSettings,
+    { ...Onboarding, admin: { ...Onboarding.admin, preview: () => previewUrl('/login') } },
+    RiskProfile,
     { ...SebiDisclosure, admin: { ...SebiDisclosure.admin, preview: () => previewUrl('/sebi-disclosure') } },
+    { ...PortfolioScan, admin: { ...PortfolioScan.admin, preview: () => previewUrl('/portfolio-scan') } },
+    ScanConfig,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -44,8 +73,10 @@ export default buildConfig({
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI || '' },
     migrationDir: path.resolve(dirname, 'migrations'),
-    // Dev pushes schema changes automatically; production applies migrations at build time.
-    push: process.env.NODE_ENV !== 'production',
+    // Dev pushes schema changes automatically, but only into a local database. Remote
+    // databases (Supabase) must only ever change through migrations, or `payload migrate`
+    // in the Vercel build will refuse a dev-pushed schema.
+    push: process.env.NODE_ENV !== 'production' && isLocalDatabase(process.env.DATABASE_URI),
   }),
   sharp,
   plugins: useS3

@@ -7,9 +7,11 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const nextConfig: NextConfig = {
   images: {
-    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/placeholders/**' }],
+    localPatterns: [{ pathname: '/api/media/file/**' }, { pathname: '/placeholders/**' }, { pathname: '/brand/**' }, { pathname: '/logos/**' }],
     remotePatterns: [{ protocol: 'https', hostname: '*.supabase.co' }],
   },
+  // Loaded by Node at runtime rather than bundled (PDF report, server-side PDF reading).
+  serverExternalPackages: ['@react-pdf/renderer', 'pdfjs-dist'],
   turbopack: {
     root: path.resolve(dirname),
   },

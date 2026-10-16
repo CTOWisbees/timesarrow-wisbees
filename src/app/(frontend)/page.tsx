@@ -1,3 +1,6 @@
+import { Suspense } from 'react'
+
+import { VariantSwitcher } from '@/components/dev/variant-switcher'
 import { BookCall } from '@/components/sections/book-call/book-call'
 import { Faq } from '@/components/sections/faq'
 import { Gallery } from '@/components/sections/gallery'
@@ -7,11 +10,16 @@ import { IllustrationBand } from '@/components/sections/illustration-band'
 import { ModelPortfolios } from '@/components/sections/model-portfolios'
 import { SipCalculator } from '@/components/sections/sip-calculator/calculator'
 import { getFaqs, getGalleryItems, getHomePage, getModelPortfolios } from '@/lib/queries'
+import { resolveToggles, resolveVariant, variantPreviewEnabled } from '@/lib/section-variants'
 
 // Payload hooks revalidate on publish; this is only a safety net.
 export const revalidate = 3600
 
-export default async function HomePage() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
+  // Variant previews (?variant-gallery=…) are read only in development.
+  const params = variantPreviewEnabled() ? await searchParams : {}
   const [home, portfolios, faqs, gallery] = await Promise.all([
     getHomePage(),
     getModelPortfolios(),
@@ -27,9 +35,26 @@ export default async function HomePage() {
       {on(home.calculator) && <SipCalculator data={home.calculator} />}
       {home.illustration && on(home.illustration) && <IllustrationBand data={home.illustration} />}
       {on(home.portfolios) && <ModelPortfolios data={home.portfolios} portfolios={portfolios} />}
-      {on(home.gallery) && <Gallery data={home.gallery} items={gallery} />}
+      {on(home.gallery) && (
+        <Gallery data={home.gallery} items={gallery} variant={resolveVariant('gallery', home.gallery.variant, params)} />
+      )}
       {on(home.faq) && <Faq data={home.faq} faqs={faqs} />}
-      {on(home.bookCall) && <BookCall data={home.bookCall} />}
+      {on(home.bookCall) && (
+        <BookCall
+          data={home.bookCall}
+          variant={resolveVariant('bookCall', home.bookCall.variant, params)}
+          icons={resolveToggles('bookCall', home.bookCall.fieldIcons, params)}
+        />
+      )}
+      {variantPreviewEnabled() && (
+        <Suspense>
+          <VariantSwitcher
+            sections={['gallery', 'bookCall']}
+            live={{ gallery: home.gallery.variant, bookCall: home.bookCall.variant }}
+            toggles={{ bookCall: home.bookCall.fieldIcons ?? [] }}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

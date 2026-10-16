@@ -25,11 +25,19 @@ export const SiteSettings: GlobalConfig = contentGlobal({
         },
         {
           label: 'Navigation',
-          fields: [linkArray('navItems', 'Menu items'), linkGroup('loginCta', 'Login button')],
+          fields: [
+            linkArray('navItems', 'Menu items'),
+            linkGroup('loginCta', 'Login button'),
+          ],
         },
         {
           label: 'Footer',
           fields: [
+            {
+              name: 'footerTagline',
+              type: 'textarea',
+              admin: { description: 'Short line under the logo in the footer.' },
+            },
             {
               name: 'footerColumns',
               type: 'array',

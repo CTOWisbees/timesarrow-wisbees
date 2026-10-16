@@ -6,8 +6,10 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { linkProps } from '@/lib/links'
 import { cn } from '@/lib/utils'
+import type { AccountSummary } from '@/lib/account'
 import type { SiteSetting } from '@/payload-types'
 
+import { AccountMenu } from './account-menu'
 import { MobileNav } from './mobile-nav'
 
 type NavItem = NonNullable<SiteSetting['navItems']>[number]
@@ -16,10 +18,13 @@ export function SiteHeader({
   logo,
   navItems,
   loginCta,
+  account,
 }: {
   logo: React.ReactNode
   navItems: NavItem[]
   loginCta?: SiteSetting['loginCta']
+  /** Signed-in visitor, resolved on the server so the avatar shows with the first paint. */
+  account: AccountSummary | null
 }) {
   const [scrolled, setScrolled] = useState(false)
   const activeId = useActiveSection(navItems)
@@ -38,10 +43,11 @@ export function SiteHeader({
         scrolled ? 'shadow-[0_1px_12px_rgb(16_34_27/0.08)]' : 'shadow-none',
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-6 md:h-20">
+      <div className="container-page flex h-[calc(var(--header-h)-1px)] items-center justify-between gap-6">
         {logo}
 
-        <nav aria-label="Main" className="hidden md:block">
+        {/* Desktop only. Phones and tablets get the menu drawer. */}
+        <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex items-center gap-1 lg:gap-3">
             {navItems.map((item) => {
               const active = item.href === `#${activeId}`
@@ -66,14 +72,15 @@ export function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-2">
-          {loginCta?.href && (
-            <Button asChild size="cta" className="hidden h-11 px-6 sm:inline-flex">
+          {account && <AccountMenu account={account} />}
+          {!account && loginCta?.href && (
+            <Button asChild size="cta" className="hidden h-11 px-6 md:inline-flex">
               <Link href={loginCta.href} {...linkProps(loginCta.href)}>
                 {loginCta.label}
               </Link>
             </Button>
           )}
-          <MobileNav logo={logo} navItems={navItems} loginCta={loginCta} />
+          <MobileNav logo={logo} navItems={navItems} loginCta={account ? undefined : loginCta} />
         </div>
       </div>
     </header>

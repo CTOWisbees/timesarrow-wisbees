@@ -6,7 +6,17 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
-import { faqs, galleryItems, homePage, modelPortfolios, sebiDisclosure, siteSettings } from './content'
+import {
+  faqs,
+  galleryItems,
+  homePage,
+  modelPortfolios,
+  onboarding,
+  riskProfile,
+  sebiDisclosure,
+  siteSettings,
+} from './content'
+import { portfolioScan, scanConfig } from './portfolio-scan'
 
 // Runs outside Next.js, so skip the hooks that call revalidatePath.
 const context = { disableRevalidate: true }
@@ -14,9 +24,25 @@ const context = { disableRevalidate: true }
 const payload = await getPayload({ config })
 const reset = process.env.SEED_RESET === 'true'
 
-await payload.updateGlobal({ slug: 'site-settings', data: { ...siteSettings, _status: 'published' }, context })
-await payload.updateGlobal({ slug: 'sebi-disclosure', data: { ...sebiDisclosure, _status: 'published' }, context })
-await payload.updateGlobal({ slug: 'home-page', data: { ...homePage, _status: 'published' }, context })
+// SEED_ONLY=portfolio-scan,scan-config seeds just those globals and stops, leaving other CMS edits alone.
+const only = process.env.SEED_ONLY?.split(',').map((s) => s.trim()).filter(Boolean)
+const globals = [
+  { slug: 'site-settings', data: siteSettings },
+  { slug: 'sebi-disclosure', data: sebiDisclosure },
+  { slug: 'home-page', data: homePage },
+  { slug: 'onboarding', data: onboarding },
+  { slug: 'risk-profile', data: riskProfile },
+  { slug: 'portfolio-scan', data: portfolioScan },
+  { slug: 'scan-config', data: scanConfig },
+] as const
+for (const g of globals) {
+  if (only && !only.includes(g.slug)) continue
+  await payload.updateGlobal({ slug: g.slug, data: { ...g.data, _status: 'published' } as never, context })
+}
+if (only) {
+  payload.logger.info(`Seeded ${only.join(', ')}`)
+  process.exit(0)
+}
 payload.logger.info('Seeded globals')
 
 const seedCollection = async <T extends 'model-portfolios' | 'faqs' | 'gallery-items'>(

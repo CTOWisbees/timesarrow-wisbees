@@ -2,22 +2,16 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import Link from 'next/link'
-import { Public_Sans, Source_Serif_4 } from 'next/font/google'
 
 import { Logo } from '@/components/layout/logo'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
+import { getAccountSummary } from '@/lib/account'
 import { getSebiDisclosure, getSiteSettings } from '@/lib/queries'
 
-import './globals.css'
+import { sans, serif } from '../fonts'
 
-const sans = Public_Sans({ subsets: ['latin'], variable: '--font-public-sans', display: 'swap' })
-const serif = Source_Serif_4({
-  subsets: ['latin'],
-  variable: '--font-source-serif',
-  axes: ['opsz'],
-  display: 'swap',
-})
+import './globals.css'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 // Stays false until BASL approves the content, so nothing is indexed early.
@@ -35,12 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const [settings, sebi, draft] = await Promise.all([getSiteSettings(), getSebiDisclosure(), draftMode()])
+  const [settings, sebi, draft, account] = await Promise.all([
+    getSiteSettings(),
+    getSebiDisclosure(),
+    draftMode(),
+    getAccountSummary(),
+  ])
   const logo = <Logo logo={settings.logo} siteName={settings.siteName} />
 
   return (
-    <html lang="en-IN" className={`${sans.variable} ${serif.variable}`}>
-      <body className="flex min-h-dvh flex-col">
+    <html lang="en-IN" data-scroll-behavior="smooth" className={`${sans.variable} ${serif.variable}`}>
+      <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
         <a
           href="#main"
           className="bg-primary text-primary-foreground sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -55,7 +54,12 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             </Link>
           </div>
         )}
-        <SiteHeader logo={logo} navItems={settings.navItems ?? []} loginCta={settings.loginCta} />
+        <SiteHeader
+          logo={logo}
+          navItems={settings.navItems ?? []}
+          loginCta={settings.loginCta}
+          account={account}
+        />
         <main id="main" className="flex-1">
           {children}
         </main>

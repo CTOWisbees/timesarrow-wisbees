@@ -2,6 +2,8 @@ import type { Field, GlobalConfig, Tab } from 'payload'
 
 import { complianceToggle } from '../fields/approval'
 import { linkGroup } from '../fields/link'
+import { SECTION_TOGGLES, variantOptions } from '@/lib/section-variants'
+
 import { contentGlobal } from '../workflow'
 
 const enabled: Field = {
@@ -10,12 +12,6 @@ const enabled: Field = {
   label: 'Show this section',
   defaultValue: true,
 }
-
-const disclaimer = (description = 'Shown directly under this section.'): Field => ({
-  name: 'disclaimer',
-  type: 'textarea',
-  admin: { description },
-})
 
 const sectionTab = (name: string, label: string, fields: Field[]): Tab => ({
   name,
@@ -39,7 +35,6 @@ export const HomePage: GlobalConfig = contentGlobal({
             type: 'row',
             fields: [linkGroup('secondaryCta', 'Outline button'), linkGroup('primaryCta', 'Filled button')],
           },
-          disclaimer(),
         ]),
         sectionTab('highlights', 'Highlights', [
           { name: 'title', type: 'text', required: true },
@@ -109,7 +104,6 @@ export const HomePage: GlobalConfig = contentGlobal({
             fields: [{ name: 'years', type: 'number', required: true }],
           },
           { name: 'defaultHorizon', type: 'number', defaultValue: 20 },
-          disclaimer(),
         ]),
         sectionTab('illustration', 'Illustration band', [
           { name: 'image', type: 'upload', relationTo: 'media' },
@@ -117,27 +111,107 @@ export const HomePage: GlobalConfig = contentGlobal({
         sectionTab('portfolios', 'Model portfolios', [
           { name: 'title', type: 'textarea', required: true },
           { name: 'intro', type: 'textarea' },
-          disclaimer('Mandatory: portfolios shown are illustrative and not a recommendation.'),
         ]),
         sectionTab('gallery', 'Gallery', [
+          {
+            name: 'variant',
+            label: 'Layout',
+            type: 'select',
+            required: true,
+            defaultValue: 'immersive',
+            options: variantOptions('gallery'),
+            admin: { description: 'Which design of this section the website shows. Developers can preview the others locally.' },
+          },
           { name: 'title', type: 'text', required: true },
-          { name: 'backgroundImage', type: 'upload', relationTo: 'media' },
           linkGroup('cta', 'See all link'),
+          {
+            name: 'autoplaySeconds',
+            type: 'number',
+            defaultValue: 6,
+            min: 3,
+            max: 30,
+            admin: { description: 'Seconds each photo stays before the next one loads. The slideshow loops.' },
+          },
         ]),
         sectionTab('faq', 'FAQ', [
-          { name: 'eyebrow', type: 'text' },
           { name: 'title', type: 'textarea', required: true },
         ]),
         sectionTab('bookCall', 'Book a call', [
-          { name: 'eyebrow', type: 'text' },
+          {
+            name: 'variant',
+            label: 'Layout',
+            type: 'select',
+            required: true,
+            defaultValue: 'two-step',
+            options: variantOptions('bookCall'),
+            admin: { description: 'How the form is laid out. Developers can preview the others locally.' },
+          },
+          {
+            name: 'fieldIcons',
+            label: 'Field icons',
+            type: 'select',
+            hasMany: true,
+            defaultValue: ['day', 'time'],
+            options: SECTION_TOGGLES.bookCall.options.map((o) => ({ value: o.value, label: o.label })),
+            admin: { description: 'Which fields show a small icon (form layouts only).' },
+          },
+          {
+            type: 'collapsible',
+            label: 'Microsoft Bookings (layout "Microsoft Bookings")',
+            admin: { initCollapsed: true },
+            fields: [
+              {
+                name: 'msBookingsUrl',
+                label: 'Booking page link',
+                type: 'text',
+                admin: {
+                  description:
+                    'From Bookings → Booking page → Embed (copy the link). The page must be published and open to anyone, not only your organisation.',
+                },
+              },
+              {
+                type: 'row',
+                fields: [
+                  {
+                    name: 'msBookingsDisplay',
+                    label: 'Show as',
+                    type: 'select',
+                    defaultValue: 'embed',
+                    options: [
+                      { label: 'Embedded in the page', value: 'embed' },
+                      { label: 'Button that opens it', value: 'link' },
+                    ],
+                  },
+                  { name: 'msBookingsLinkLabel', label: 'Button / link text', type: 'text', defaultValue: 'Open the booking page' },
+                ],
+              },
+              { name: 'msBookingsNote', label: 'Text above the booking page', type: 'textarea' },
+            ],
+          },
           { name: 'title', type: 'text', required: true },
           { name: 'description', type: 'textarea' },
           {
-            name: 'benefits',
-            type: 'array',
-            fields: [{ name: 'text', type: 'text', required: true }],
+            name: 'illustration',
+            type: 'upload',
+            relationTo: 'media',
+            admin: { description: 'Vector illustration shown under the heading. A placeholder is used until one is uploaded.' },
           },
-          complianceToggle('showSlotPicker', 'Let visitors pick a day and time'),
+          complianceToggle(
+            'showSlotPicker',
+            'Offer step 2: pick a day and time',
+            'Optional second step shown after the details are saved.',
+          ),
+          {
+            name: 'slotStepTitle',
+            type: 'text',
+            defaultValue: 'Pick a time that suits you',
+            admin: { condition: (_, siblingData) => Boolean(siblingData?.showSlotPicker) },
+          },
+          {
+            name: 'slotStepDescription',
+            type: 'textarea',
+            admin: { condition: (_, siblingData) => Boolean(siblingData?.showSlotPicker) },
+          },
           {
             name: 'timeSlots',
             type: 'array',
@@ -148,9 +222,9 @@ export const HomePage: GlobalConfig = contentGlobal({
             name: 'consentText',
             type: 'textarea',
             required: true,
-            admin: { description: 'Visitors must tick this before submitting. Stored with each booking.' },
+            admin: { description: 'Shown just above the button; submitting the form counts as agreeing. Stored with each booking.' },
           },
-          { name: 'submitLabel', type: 'text', defaultValue: 'Submit to book a call' },
+          { name: 'submitLabel', type: 'text', defaultValue: 'Book a call' },
           { name: 'successTitle', type: 'text', defaultValue: 'Your call is booked' },
           { name: 'successMessage', type: 'textarea' },
         ]),

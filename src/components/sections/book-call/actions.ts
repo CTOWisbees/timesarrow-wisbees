@@ -1,70 +1,149 @@
 'use server'
 
-import { createHash } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import { headers } from 'next/headers'
+import type { z } from 'zod'
 
 import { getPayloadClient } from '@/lib/payload'
 
-import { type BookingInput, type BookingResult, bookingSchema } from './schema'
+import {
+  type BookingInput,
+  type BookingResult,
+  bookingSchema,
+  type ContactInput,
+  type ContactResult,
+  contactSchema,
+  type SlotInput,
+  type SlotResult,
+  slotSchema,
+} from './schema'
 
 const MAX_PER_IP_PER_HOUR = 5
+/** How long after step 1 the visitor can still attach a preferred slot. */
+const SLOT_WINDOW_MS = 2 * 60 * 60 * 1000
 
-const hashIp = (ip: string) =>
-  createHash('sha256').update(`${ip}:${process.env.PAYLOAD_SECRET}`).digest('hex').slice(0, 32)
+const sha256 = (value: string) => createHash('sha256').update(value).digest('hex')
+const hashIp = (ip: string) => sha256(`${ip}:${process.env.PAYLOAD_SECRET}`).slice(0, 32)
+
+const fieldErrorsFrom = (error: z.ZodError) => {
+  const fieldErrors: Record<string, string> = {}
+  for (const issue of error.issues) fieldErrors[String(issue.path[0])] ??= issue.message
+  return fieldErrors
+}
+
+const SERVER_ERROR = 'Something went wrong on our side. Please try again in a minute.'
 
 /**
- * Stores a "Talk to an expert" request. The consent wording is read from the
- * published home page on the server, so the stored record reflects exactly what
- * the visitor was shown rather than anything the client sends.
+ * Step 1: stores the call request straight away. The consent wording is read from
+ * the published home page on the server, so the record reflects exactly what the
+ * visitor was shown. Returns a one-time token that lets the same visitor add a
+ * preferred slot in step 2; only its hash is stored.
+ */
+export async function submitContact(input: ContactInput): Promise<ContactResult> {
+  return createBooking(contactSchema, input, true)
+}
+
+/**
+ * One-step booking (layouts "one step" and "pick a time first"): contact details and,
+ * optionally, a preferred day and time, saved together.
  */
 export async function submitBooking(input: BookingInput): Promise<BookingResult> {
-  const parsed = bookingSchema.safeParse(input)
+  const result = await createBooking(bookingSchema, input, false)
+  return result.ok ? { ok: true } : result
+}
+
+async function createBooking(
+  schema: typeof contactSchema | typeof bookingSchema,
+  input: ContactInput | BookingInput,
+  withSlotToken: boolean,
+): Promise<ContactResult> {
+  const parsed = schema.safeParse(input)
   if (!parsed.success) {
     // A filled honeypot gets a quiet fake success so bots learn nothing.
-    if (parsed.error.issues.some((i) => i.path[0] === 'website')) return { ok: true }
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of parsed.error.issues) fieldErrors[String(issue.path[0])] ??= issue.message
-    return { ok: false, error: 'Please check the highlighted fields.', fieldErrors }
+    if (parsed.error.issues.some((i) => i.path[0] === 'website')) {
+      return { ok: true, token: randomBytes(32).toString('hex') }
+    }
+    return { ok: false, error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsFrom(parsed.error) }
   }
   const data = parsed.data
+  const { preferredDay, preferredTime } = data as { preferredDay?: string; preferredTime?: string }
+  const slot = preferredDay && preferredTime ? `${preferredDay}, ${preferredTime}` : undefined
 
   try {
     const payload = await getPayloadClient()
     const requestHeaders = await headers()
-    const ip = requestHeaders.get('x-forwarded-for')?.split(',')[0]?.trim() || requestHeaders.get('x-real-ip') || 'unknown'
+    const ip =
+      requestHeaders.get('x-forwarded-for')?.split(',')[0]?.trim() || requestHeaders.get('x-real-ip') || 'unknown'
     const ipHash = hashIp(ip)
 
-    const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
     const { totalDocs } = await payload.count({
       collection: 'bookings',
-      where: { and: [{ ipHash: { equals: ipHash } }, { createdAt: { greater_than: hourAgo } }] },
+      where: {
+        and: [{ ipHash: { equals: ipHash } }, { createdAt: { greater_than: new Date(Date.now() - 3_600_000).toISOString() } }],
+      },
     })
     if (totalDocs >= MAX_PER_IP_PER_HOUR) {
       return { ok: false, error: 'We have already received several requests from you. We will be in touch soon.' }
     }
 
     const home = await payload.findGlobal({ slug: 'home-page', draft: false, depth: 0 })
-    const slot = [data.preferredDay, data.preferredTime].filter(Boolean).join(', ')
+    const token = randomBytes(32).toString('hex')
 
     await payload.create({
       collection: 'bookings',
       overrideAccess: true,
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        mobile: data.mobile,
+        fullName: data.fullName,
         email: data.email,
-        preferredSlot: slot || undefined,
+        mobile: data.mobile,
         consentText: home.bookCall.consentText,
         consentAt: new Date().toISOString(),
         source: 'home-page',
         ipHash,
+        ...(slot ? { preferredSlot: slot } : {}),
+        ...(withSlotToken ? { slotTokenHash: sha256(token) } : {}),
         status: 'new',
       },
     })
+    return { ok: true, token }
+  } catch (error) {
+    console.error('Booking failed', error instanceof Error ? error.message : error)
+    return { ok: false, error: SERVER_ERROR }
+  }
+}
+
+/** Step 2 (optional): attaches a preferred day and time to the booking from step 1. */
+export async function submitSlot(input: SlotInput): Promise<SlotResult> {
+  const parsed = slotSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: 'Please pick both a day and a time.' }
+  const { token, preferredDay, preferredTime } = parsed.data
+
+  try {
+    const payload = await getPayloadClient()
+    const { docs } = await payload.find({
+      collection: 'bookings',
+      overrideAccess: true,
+      limit: 1,
+      depth: 0,
+      where: {
+        and: [
+          { slotTokenHash: { equals: sha256(token) } },
+          { createdAt: { greater_than: new Date(Date.now() - SLOT_WINDOW_MS).toISOString() } },
+        ],
+      },
+    })
+    // Unknown or expired token (including the honeypot's fake one): succeed quietly.
+    if (!docs[0]) return { ok: true }
+
+    await payload.update({
+      collection: 'bookings',
+      id: docs[0].id,
+      overrideAccess: true,
+      data: { preferredSlot: `${preferredDay}, ${preferredTime}`, slotTokenHash: null },
+    })
     return { ok: true }
   } catch (error) {
-    console.error('submitBooking failed', error)
-    return { ok: false, error: 'Something went wrong on our side. Please try again in a minute.' }
+    console.error('submitSlot failed', error)
+    return { ok: false, error: SERVER_ERROR }
   }
 }

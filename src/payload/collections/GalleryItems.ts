@@ -13,11 +13,17 @@ export const GalleryItems: CollectionConfig = contentCollection({
   defaultSort: 'order',
   fields: [
     { name: 'title', type: 'text', required: true },
-    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media', admin: { description: 'Shown large on the right, and as a thumbnail. Landscape works best (16:10).' } },
+    {
+      name: 'description',
+      type: 'textarea',
+      admin: { description: 'Shown beside the large image. Two or three sentences.' },
+    },
     {
       type: 'row',
       fields: [
         { name: 'date', type: 'date', admin: { date: { pickerAppearance: 'dayOnly' } } },
+        { name: 'location', type: 'text', admin: { placeholder: 'Bengaluru' } },
         { name: 'href', type: 'text', label: 'Link (optional)' },
       ],
     },

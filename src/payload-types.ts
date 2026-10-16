@@ -72,6 +72,7 @@ export interface Config {
     'gallery-items': GalleryItem;
     media: Media;
     bookings: Booking;
+    applications: Application;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -85,6 +86,7 @@ export interface Config {
     'gallery-items': GalleryItemsSelect<false> | GalleryItemsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    applications: ApplicationsSelect<false> | ApplicationsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -98,12 +100,20 @@ export interface Config {
   globals: {
     'home-page': HomePage;
     'site-settings': SiteSetting;
+    onboarding: Onboarding;
+    'risk-profile': RiskProfile;
     'sebi-disclosure': SebiDisclosure;
+    'portfolio-scan': PortfolioScan;
+    'scan-config': ScanConfig;
   };
   globalsSelect: {
     'home-page': HomePageSelect<false> | HomePageSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    onboarding: OnboardingSelect<false> | OnboardingSelect<true>;
+    'risk-profile': RiskProfileSelect<false> | RiskProfileSelect<true>;
     'sebi-disclosure': SebiDisclosureSelect<false> | SebiDisclosureSelect<true>;
+    'portfolio-scan': PortfolioScanSelect<false> | PortfolioScanSelect<true>;
+    'scan-config': ScanConfigSelect<false> | ScanConfigSelect<true>;
   };
   locale: null;
   widgets: {
@@ -270,8 +280,16 @@ export interface Faq {
 export interface GalleryItem {
   id: number;
   title: string;
+  /**
+   * Shown large on the right, and as a thumbnail. Landscape works best (16:10).
+   */
   image?: (number | null) | Media;
+  /**
+   * Shown beside the large image. Two or three sentences.
+   */
+  description?: string | null;
   date?: string | null;
+  location?: string | null;
   href?: string | null;
   order?: number | null;
   /**
@@ -295,12 +313,11 @@ export interface GalleryItem {
  */
 export interface Booking {
   id: number;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   mobile: string;
   email: string;
   /**
-   * Day and time picked by the visitor.
+   * Day and time picked by the visitor (optional step 2).
    */
   preferredSlot?: string | null;
   status?: ('new' | 'contacted' | 'closed') | null;
@@ -312,6 +329,53 @@ export interface Booking {
   consentAt: string;
   source?: string | null;
   ipHash?: string | null;
+  slotTokenHash?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * People who signed up and completed (or started) onboarding.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "applications".
+ */
+export interface Application {
+  id: number;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  riskCategory?: string | null;
+  riskScore?: number | null;
+  equityLimit?: string | null;
+  riskAnswers?:
+    | {
+        questionKey?: string | null;
+        question?: string | null;
+        answer?: string | null;
+        score?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When the questions in use were last published.
+   */
+  questionnaireVersion?: string | null;
+  pan?: string | null;
+  dateOfBirth?: string | null;
+  city?: string | null;
+  status: 'profile_pending' | 'submitted' | 'contacted' | 'approved' | 'rejected';
+  submittedAt?: string | null;
+  internalNotes?: string | null;
+  /**
+   * Supabase Auth user id.
+   */
+  supabaseUserId: string;
+  authProvider?: ('email' | 'google') | null;
+  /**
+   * Exact consent wording shown at sign-up.
+   */
+  consentText?: string | null;
+  consentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -389,6 +453,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bookings';
         value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'applications';
+        value: number | Application;
       } | null)
     | ({
         relationTo: 'users';
@@ -498,7 +566,9 @@ export interface FaqsSelect<T extends boolean = true> {
 export interface GalleryItemsSelect<T extends boolean = true> {
   title?: T;
   image?: T;
+  description?: T;
   date?: T;
+  location?: T;
   href?: T;
   order?: T;
   approval?:
@@ -570,8 +640,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "bookings_select".
  */
 export interface BookingsSelect<T extends boolean = true> {
-  firstName?: T;
-  lastName?: T;
+  fullName?: T;
   mobile?: T;
   email?: T;
   preferredSlot?: T;
@@ -581,6 +650,41 @@ export interface BookingsSelect<T extends boolean = true> {
   consentAt?: T;
   source?: T;
   ipHash?: T;
+  slotTokenHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "applications_select".
+ */
+export interface ApplicationsSelect<T extends boolean = true> {
+  fullName?: T;
+  email?: T;
+  phone?: T;
+  riskCategory?: T;
+  riskScore?: T;
+  equityLimit?: T;
+  riskAnswers?:
+    | T
+    | {
+        questionKey?: T;
+        question?: T;
+        answer?: T;
+        score?: T;
+        id?: T;
+      };
+  questionnaireVersion?: T;
+  pan?: T;
+  dateOfBirth?: T;
+  city?: T;
+  status?: T;
+  submittedAt?: T;
+  internalNotes?: T;
+  supabaseUserId?: T;
+  authProvider?: T;
+  consentText?: T;
+  consentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -677,10 +781,6 @@ export interface HomePage {
        */
       href: string;
     };
-    /**
-     * Shown directly under this section.
-     */
-    disclaimer?: string | null;
   };
   highlights: {
     enabled?: boolean | null;
@@ -740,10 +840,6 @@ export interface HomePage {
         }[]
       | null;
     defaultHorizon?: number | null;
-    /**
-     * Shown directly under this section.
-     */
-    disclaimer?: string | null;
   };
   illustration?: {
     enabled?: boolean | null;
@@ -753,15 +849,14 @@ export interface HomePage {
     enabled?: boolean | null;
     title: string;
     intro?: string | null;
-    /**
-     * Mandatory: portfolios shown are illustrative and not a recommendation.
-     */
-    disclaimer?: string | null;
   };
   gallery: {
     enabled?: boolean | null;
+    /**
+     * Which design of this section the website shows. Developers can preview the others locally.
+     */
+    variant: 'immersive' | 'split' | 'mosaic';
     title: string;
-    backgroundImage?: (number | null) | Media;
     cta: {
       label: string;
       /**
@@ -769,24 +864,44 @@ export interface HomePage {
        */
       href: string;
     };
+    /**
+     * Seconds each photo stays before the next one loads. The slideshow loops.
+     */
+    autoplaySeconds?: number | null;
   };
   faq: {
     enabled?: boolean | null;
-    eyebrow?: string | null;
     title: string;
   };
   bookCall: {
     enabled?: boolean | null;
-    eyebrow?: string | null;
+    /**
+     * How the form is laid out. Developers can preview the others locally.
+     */
+    variant: 'two-step' | 'one-step' | 'slot-first' | 'ms-bookings';
+    /**
+     * Which fields show a small icon (form layouts only).
+     */
+    fieldIcons?: ('name' | 'email' | 'phone' | 'day' | 'time')[] | null;
+    /**
+     * From Bookings → Booking page → Embed (copy the link). The page must be published and open to anyone, not only your organisation.
+     */
+    msBookingsUrl?: string | null;
+    msBookingsDisplay?: ('embed' | 'link') | null;
+    msBookingsLinkLabel?: string | null;
+    msBookingsNote?: string | null;
     title: string;
     description?: string | null;
-    benefits?:
-      | {
-          text: string;
-          id?: string | null;
-        }[]
-      | null;
+    /**
+     * Vector illustration shown under the heading. A placeholder is used until one is uploaded.
+     */
+    illustration?: (number | null) | Media;
+    /**
+     * Optional second step shown after the details are saved.
+     */
     showSlotPicker?: boolean | null;
+    slotStepTitle?: string | null;
+    slotStepDescription?: string | null;
     timeSlots?:
       | {
           label: string;
@@ -794,7 +909,7 @@ export interface HomePage {
         }[]
       | null;
     /**
-     * Visitors must tick this before submitting. Stored with each booking.
+     * Shown just above the button; submitting the form counts as agreeing. Stored with each booking.
      */
     consentText: string;
     submitLabel?: string | null;
@@ -843,6 +958,10 @@ export interface SiteSetting {
      */
     href: string;
   };
+  /**
+   * Short line under the logo in the footer.
+   */
+  footerTagline?: string | null;
   footerColumns?:
     | {
         heading: string;
@@ -881,6 +1000,121 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "onboarding".
+ */
+export interface Onboarding {
+  id: number;
+  brand: {
+    /**
+     * One line per row. Keep it short.
+     */
+    headline: string;
+    /**
+     * One or two sentences under the headline.
+     */
+    message?: string | null;
+    /**
+     * Shown under the message on large screens. A placeholder is used until one is uploaded.
+     */
+    illustration?: (number | null) | Media;
+  };
+  account: {
+    signUpTitle: string;
+    signUpDescription?: string | null;
+    logInTitle: string;
+    logInDescription?: string | null;
+    /**
+     * Shown next to the sign-up checkbox and stored with each application.
+     */
+    consentText: string;
+  };
+  verify: {
+    verifyTitle: string;
+    verifyDescription?: string | null;
+    /**
+     * How the risk-profile questions are presented. The questions themselves are in "Risk profile questions".
+     */
+    layout: 'focus' | 'single-page' | 'conversation';
+  };
+  review: {
+    title: string;
+    message: string;
+  };
+  /**
+   * Record the BASL approval for the content being published.
+   */
+  approval?: {
+    reference?: string | null;
+    approvedOn?: string | null;
+    approvedBy?: string | null;
+    notes?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The multiple-choice questions in onboarding step 2. Scores and categories are never shown to applicants.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "risk-profile".
+ */
+export interface RiskProfile {
+  id: number;
+  title: string;
+  submitLabel: string;
+  description?: string | null;
+  questions?:
+    | {
+        /**
+         * Short stable id, e.g. "priorities". Answers are stored against it, so do not change it once live.
+         */
+        key: string;
+        question: string;
+        /**
+         * Optional hint shown under the question.
+         */
+        help?: string | null;
+        answers?:
+          | {
+              label: string;
+              /**
+               * Hidden from applicants.
+               */
+              score: number;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Total score → category and equity limit. Hidden from applicants. Bands must not overlap.
+   */
+  bands?:
+    | {
+        min: number;
+        max: number;
+        category: string;
+        equityLimit?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Record the BASL approval for the content being published.
+   */
+  approval?: {
+    reference?: string | null;
+    approvedOn?: string | null;
+    approvedBy?: string | null;
+    notes?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sebi-disclosure".
  */
 export interface SebiDisclosure {
@@ -892,6 +1126,9 @@ export interface SebiDisclosure {
   sebiRegistrationNumber?: string | null;
   validity?: string | null;
   baslId?: string | null;
+  /**
+   * One line per row. Shown as written.
+   */
   sebiRegionalOffice?: string | null;
   principalOfficer?: {
     name?: string | null;
@@ -923,23 +1160,552 @@ export interface SebiDisclosure {
       }[]
     | null;
   /**
-   * Investor charter, complaint statistics, SCORES link and other content for /sebi-disclosure.
+   * Shown as numbered steps. The Compliance Officer contact is added under step 1 automatically.
    */
-  pageBody?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
+  complaintSteps?:
+    | {
+        title: string;
+        text: string;
+        linkLabel?: string | null;
+        linkHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  physicalComplaints?: string | null;
+  complaintsAsOf?: string | null;
+  complaintRows?:
+    | {
+        source: string;
+        pendingLastMonth?: number | null;
+        received?: number | null;
+        resolved?: number | null;
+        totalPending?: number | null;
+        pendingOver3Months?: number | null;
+        avgResolutionDays?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  monthlyDisposal?:
+    | {
+        period: string;
+        carriedForward?: number | null;
+        received?: number | null;
+        resolved?: number | null;
+        pending?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  annualDisposal?:
+    | {
+        period: string;
+        carriedForward?: number | null;
+        received?: number | null;
+        resolved?: number | null;
+        pending?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  escalationMatrix?:
+    | {
+        designation: string;
+        contactPerson: string;
+        phone?: string | null;
+        email?: string | null;
+        workingHours?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  complianceAudits?:
+    | {
+        financialYear: string;
+        status: string;
+        remarks?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  charter?:
+    | {
+        title: string;
+        intro?: string | null;
+        items?:
+          | {
+              text: string;
+              kind?: ('item' | 'subitem' | 'heading') | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Record the BASL approval for the content being published.
+   */
+  approval?: {
+    reference?: string | null;
+    approvedOn?: string | null;
+    approvedBy?: string | null;
+    notes?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * All copy for the Portfolio Scan page and results. Thresholds live in Compliance → Portfolio Scan scoring.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolio-scan".
+ */
+export interface PortfolioScan {
+  id: number;
+  title: string;
+  intro: string;
+  /**
+   * Shown under the intro, e.g. that no PAN or phone number is needed.
+   */
+  trustLine: string;
+  uploadTab: string;
+  manualTab: string;
+  sampleLink: string;
+  /**
+   * The sample uses real, named funds and stocks. Untick to hide it without a deploy.
+   */
+  showSample?: boolean | null;
+  steps: {
+    choose: string;
+    review: string;
+    details: string;
+    results: string;
+  };
+  /**
+   * What is read, what is kept, for how long, and why.
+   */
+  consentNotice: string;
+  dropTitle: string;
+  dropHint: string;
+  acceptedSources: string;
+  whereTitle: string;
+  /**
+   * Short steps per source, shown in the drawer.
+   */
+  sources?:
+    | {
+        name: string;
+        /**
+         * One step per line.
+         */
+        steps: string;
+        id?: string | null;
+      }[]
+    | null;
+  templateLabel: string;
+  passwordLabel: string;
+  passwordNote: string;
+  /**
+   * Plain-language steps shown while a file is read.
+   */
+  progress?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Shown with the disabled "connect your accounts" option until a partner is live.
+   */
+  aaNote: string;
+  mappingTitle: string;
+  mappingIntro: string;
+  searchLabel: string;
+  searchPlaceholder: string;
+  quantityLabel: string;
+  investedLabel: string;
+  valueLabel: string;
+  /**
+   * Shown for stocks, bonds and other items without a live price.
+   */
+  valueHelp: string;
+  addCash: string;
+  pasteLabel: string;
+  importCsv: string;
+  pasteHelp: string;
+  emptyState: string;
+  reviewTitle: string;
+  reviewIntro: string;
+  purchaseColumn: string;
+  unresolvedLabel: string;
+  /**
+   * Template: {name}
+   */
+  duplicateNotice: string;
+  reviewConfirm: string;
+  detailsTitle: string;
+  holdingPeriodLabel: string;
+  holdingPeriodWhy: string;
+  horizonLabel: string;
+  horizonWhy: string;
+  benchmarkLabel: string;
+  benchmarkWhy: string;
+  submitLabel: string;
+  bands: {
+    healthy: {
+      label: string;
+      /**
+       * Template: {score}, {count} (number of flags)
+       */
+      summary: string;
     };
-    [k: string]: unknown;
-  } | null;
+    fair: {
+      label: string;
+      /**
+       * Template: {score}, {count} (number of flags)
+       */
+      summary: string;
+    };
+    attention: {
+      label: string;
+      /**
+       * Template: {score}, {count} (number of flags)
+       */
+      summary: string;
+    };
+    at_risk: {
+      label: string;
+      /**
+       * Template: {score}, {count} (number of flags)
+       */
+      summary: string;
+    };
+  };
+  subScores?:
+    | {
+        subScore: 'diversification' | 'concentration' | 'risk' | 'assetMix' | 'cost';
+        label: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Word under each sub-score.
+   */
+  statusWords: {
+    good: string;
+    ok: string;
+    weak: string;
+    na: string;
+  };
+  flagsTitle: string;
+  /**
+   * Template: {count}
+   */
+  moreFlags: string;
+  noFlags: string;
+  savePrompt: {
+    title: string;
+    body: string;
+    benefits?:
+      | {
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+    cta: string;
+    saved: string;
+  };
+  blocks: {
+    allocation: string;
+    effectiveMix: string;
+    sectors: string;
+    holdings: string;
+    risk: string;
+    benchmark: string;
+    dataQuality: string;
+  };
+  riskLabels: {
+    low: string;
+    moderate: string;
+    high: string;
+    very_high: string;
+  };
+  /**
+   * Template: {annual}, {benchmark}, {benchmarkAnnual}
+   */
+  riskSentence: string;
+  /**
+   * {gap}, {benchmark}
+   */
+  benchmarkAhead: string;
+  /**
+   * {gap}, {benchmark}
+   */
+  benchmarkBehind: string;
+  /**
+   * Shown when no purchase values were given.
+   */
+  benchmarkPrompt: string;
+  /**
+   * {pct}
+   */
+  coverageChip: string;
+  /**
+   * {date}
+   */
+  asOfChip: string;
+  provisional: string;
+  /**
+   * Template: {excluded}, {pct}
+   */
+  dataQualityLine: string;
+  /**
+   * Shown on every results page and report.
+   */
+  disclaimer: string;
+  dashboardTitle: string;
+  newCheckLabel: string;
+  savedBanner: string;
+  trendTitle: string;
+  trendEmpty: string;
+  alertsTitle: string;
+  alertsEmpty: string;
+  alertTemplates: {
+    /**
+     * {from}, {to}
+     */
+    scoreDrop: string;
+    /**
+     * {title}
+     */
+    newFlag: string;
+    /**
+     * {name}, {pct}
+     */
+    limitCrossed: string;
+    recheckDue: string;
+  };
+  reminderLabel: string;
+  reminderHelp: string;
+  alertDropLabel: string;
+  concentrationLabel: string;
+  dataTitle: string;
+  downloadLabel: string;
+  deleteLabel: string;
+  deleteConfirm: string;
+  /**
+   * Factual wording only ("28% of your portfolio is in one stock"), never directive. Placeholders depend on the rule.
+   */
+  flags?:
+    | {
+        rule:
+          'R01' | 'R02' | 'R03' | 'R04' | 'R05' | 'R06' | 'R07' | 'R08' | 'R09' | 'R10' | 'R11' | 'R12' | 'R13' | 'R14';
+        title: string;
+        why: string;
+        explainerUrl?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Plain words only: no stack traces, column names or the word "parse".
+   */
+  errors?:
+    | {
+        code:
+          | 'unreadable'
+          | 'too_large'
+          | 'wrong_type'
+          | 'password'
+          | 'too_many'
+          | 'nothing_found'
+          | 'rate_limited'
+          | 'generic'
+          | 'no_holdings';
+        message: string;
+        id?: string | null;
+      }[]
+    | null;
+  plansTitle: string;
+  plansIntro: string;
+  plans?:
+    | {
+        planId: 'insights' | 'pro';
+        name: string;
+        pricePaise: number;
+        /**
+         * e.g. "per year" or "one report"
+         */
+        period: string;
+        features?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        cta: string;
+        id?: string | null;
+      }[]
+    | null;
+  refundLine: string;
+  /**
+   * Shown when a teaser has nothing to count for this portfolio.
+   */
+  lockedFallback: string;
+  lockedCards?:
+    | {
+        card:
+          'overlap' | 'drag' | 'drawdown' | 'returns' | 'stress' | 'ratios' | 'rebalance' | 'tax' | 'whatif' | 'pdf';
+        plan: 'insights' | 'pro';
+        title: string;
+        /**
+         * Uses counts or buckets only, e.g. "Overlap found in {pairs} fund pairs".
+         */
+        teaser: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Record the BASL approval for the content being published.
+   */
+  approval?: {
+    reference?: string | null;
+    approvedOn?: string | null;
+    approvedBy?: string | null;
+    notes?: string | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Thresholds behind the health score and red flags. Changes apply to new analyses once published.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scan-config".
+ */
+export interface ScanConfig {
+  id: number;
+  /**
+   * Relative weights of the five sub-scores. Not-applicable sub-scores are dropped and the rest rescaled.
+   */
+  weights: {
+    diversification: number;
+    concentration: number;
+    risk: number;
+    assetMix: number;
+    cost: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (count).
+   */
+  effectiveHoldings: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (count).
+   */
+  effectiveSectors: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (% of portfolio).
+   */
+  top1: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (% of portfolio).
+   */
+  top5: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (ratio).
+   */
+  volRatio: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (% a year).
+   */
+  ter: {
+    bad: number;
+    good: number;
+  };
+  /**
+   * Score is 0 at "bad" and 100 at "good", linear in between (% of fund value).
+   */
+  regularShare: {
+    bad: number;
+    good: number;
+  };
+  bands: {
+    healthy: number;
+    fair: number;
+    attention: number;
+  };
+  /**
+   * A critical red flag limits the overall score to this.
+   */
+  criticalCap: number;
+  /**
+   * Below this data coverage the score is shown as a range.
+   */
+  provisionalBelow: number;
+  penalties: {
+    oneClassAbove90: number;
+    oneClass80to90: number;
+    equityNoDebtGold: number;
+    cashAbove25: number;
+    cash10to25: number;
+    shortHorizonEquity: number;
+    goldAbove20: number;
+    thematicAbove30: number;
+  };
+  flags: {
+    singleStock: number;
+    singleStockCritical: number;
+    top5: number;
+    sector: number;
+    equityShortHorizon: number;
+    cash: number;
+    regularShare: number;
+    fundsPerCategory: number;
+    equityFunds: number;
+    smallCap: number;
+    volRatio: number;
+    benchmarkGap: number;
+    unpriced: number;
+    thematic: number;
+  };
+  severities: {
+    R01: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R02: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R03: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R04: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R05: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R06: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R07: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R08: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R09: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R10: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R11: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R12: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R13: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    R14: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  };
+  freeFlagsShown: number;
+  paid: {
+    assumedReturn: number;
+    dragYears: number;
+    singleStockFall: number;
+    cashYield: number;
+    riskFreeRate: number;
+  };
+  maxHoldings: number;
+  maxFileMb: number;
   /**
    * Record the BASL approval for the content being published.
    */
@@ -977,7 +1743,6 @@ export interface HomePageSelect<T extends boolean = true> {
               label?: T;
               href?: T;
             };
-        disclaimer?: T;
       };
   highlights?:
     | T
@@ -1031,7 +1796,6 @@ export interface HomePageSelect<T extends boolean = true> {
               id?: T;
             };
         defaultHorizon?: T;
-        disclaimer?: T;
       };
   illustration?:
     | T
@@ -1045,42 +1809,43 @@ export interface HomePageSelect<T extends boolean = true> {
         enabled?: T;
         title?: T;
         intro?: T;
-        disclaimer?: T;
       };
   gallery?:
     | T
     | {
         enabled?: T;
+        variant?: T;
         title?: T;
-        backgroundImage?: T;
         cta?:
           | T
           | {
               label?: T;
               href?: T;
             };
+        autoplaySeconds?: T;
       };
   faq?:
     | T
     | {
         enabled?: T;
-        eyebrow?: T;
         title?: T;
       };
   bookCall?:
     | T
     | {
         enabled?: T;
-        eyebrow?: T;
+        variant?: T;
+        fieldIcons?: T;
+        msBookingsUrl?: T;
+        msBookingsDisplay?: T;
+        msBookingsLinkLabel?: T;
+        msBookingsNote?: T;
         title?: T;
         description?: T;
-        benefits?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-            };
+        illustration?: T;
         showSlotPicker?: T;
+        slotStepTitle?: T;
+        slotStepDescription?: T;
         timeSlots?:
           | T
           | {
@@ -1126,6 +1891,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         label?: T;
         href?: T;
       };
+  footerTagline?: T;
   footerColumns?:
     | T
     | {
@@ -1144,6 +1910,98 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | {
         platform?: T;
         href?: T;
+        id?: T;
+      };
+  approval?:
+    | T
+    | {
+        reference?: T;
+        approvedOn?: T;
+        approvedBy?: T;
+        notes?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "onboarding_select".
+ */
+export interface OnboardingSelect<T extends boolean = true> {
+  brand?:
+    | T
+    | {
+        headline?: T;
+        message?: T;
+        illustration?: T;
+      };
+  account?:
+    | T
+    | {
+        signUpTitle?: T;
+        signUpDescription?: T;
+        logInTitle?: T;
+        logInDescription?: T;
+        consentText?: T;
+      };
+  verify?:
+    | T
+    | {
+        verifyTitle?: T;
+        verifyDescription?: T;
+        layout?: T;
+      };
+  review?:
+    | T
+    | {
+        title?: T;
+        message?: T;
+      };
+  approval?:
+    | T
+    | {
+        reference?: T;
+        approvedOn?: T;
+        approvedBy?: T;
+        notes?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "risk-profile_select".
+ */
+export interface RiskProfileSelect<T extends boolean = true> {
+  title?: T;
+  submitLabel?: T;
+  description?: T;
+  questions?:
+    | T
+    | {
+        key?: T;
+        question?: T;
+        help?: T;
+        answers?:
+          | T
+          | {
+              label?: T;
+              score?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  bands?:
+    | T
+    | {
+        min?: T;
+        max?: T;
+        category?: T;
+        equityLimit?: T;
         id?: T;
       };
   approval?:
@@ -1199,7 +2057,458 @@ export interface SebiDisclosureSelect<T extends boolean = true> {
         href?: T;
         id?: T;
       };
-  pageBody?: T;
+  complaintSteps?:
+    | T
+    | {
+        title?: T;
+        text?: T;
+        linkLabel?: T;
+        linkHref?: T;
+        id?: T;
+      };
+  physicalComplaints?: T;
+  complaintsAsOf?: T;
+  complaintRows?:
+    | T
+    | {
+        source?: T;
+        pendingLastMonth?: T;
+        received?: T;
+        resolved?: T;
+        totalPending?: T;
+        pendingOver3Months?: T;
+        avgResolutionDays?: T;
+        id?: T;
+      };
+  monthlyDisposal?:
+    | T
+    | {
+        period?: T;
+        carriedForward?: T;
+        received?: T;
+        resolved?: T;
+        pending?: T;
+        id?: T;
+      };
+  annualDisposal?:
+    | T
+    | {
+        period?: T;
+        carriedForward?: T;
+        received?: T;
+        resolved?: T;
+        pending?: T;
+        id?: T;
+      };
+  escalationMatrix?:
+    | T
+    | {
+        designation?: T;
+        contactPerson?: T;
+        phone?: T;
+        email?: T;
+        workingHours?: T;
+        id?: T;
+      };
+  complianceAudits?:
+    | T
+    | {
+        financialYear?: T;
+        status?: T;
+        remarks?: T;
+        id?: T;
+      };
+  charter?:
+    | T
+    | {
+        title?: T;
+        intro?: T;
+        items?:
+          | T
+          | {
+              text?: T;
+              kind?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  approval?:
+    | T
+    | {
+        reference?: T;
+        approvedOn?: T;
+        approvedBy?: T;
+        notes?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolio-scan_select".
+ */
+export interface PortfolioScanSelect<T extends boolean = true> {
+  title?: T;
+  intro?: T;
+  trustLine?: T;
+  uploadTab?: T;
+  manualTab?: T;
+  sampleLink?: T;
+  showSample?: T;
+  steps?:
+    | T
+    | {
+        choose?: T;
+        review?: T;
+        details?: T;
+        results?: T;
+      };
+  consentNotice?: T;
+  dropTitle?: T;
+  dropHint?: T;
+  acceptedSources?: T;
+  whereTitle?: T;
+  sources?:
+    | T
+    | {
+        name?: T;
+        steps?: T;
+        id?: T;
+      };
+  templateLabel?: T;
+  passwordLabel?: T;
+  passwordNote?: T;
+  progress?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  aaNote?: T;
+  mappingTitle?: T;
+  mappingIntro?: T;
+  searchLabel?: T;
+  searchPlaceholder?: T;
+  quantityLabel?: T;
+  investedLabel?: T;
+  valueLabel?: T;
+  valueHelp?: T;
+  addCash?: T;
+  pasteLabel?: T;
+  importCsv?: T;
+  pasteHelp?: T;
+  emptyState?: T;
+  reviewTitle?: T;
+  reviewIntro?: T;
+  purchaseColumn?: T;
+  unresolvedLabel?: T;
+  duplicateNotice?: T;
+  reviewConfirm?: T;
+  detailsTitle?: T;
+  holdingPeriodLabel?: T;
+  holdingPeriodWhy?: T;
+  horizonLabel?: T;
+  horizonWhy?: T;
+  benchmarkLabel?: T;
+  benchmarkWhy?: T;
+  submitLabel?: T;
+  bands?:
+    | T
+    | {
+        healthy?:
+          | T
+          | {
+              label?: T;
+              summary?: T;
+            };
+        fair?:
+          | T
+          | {
+              label?: T;
+              summary?: T;
+            };
+        attention?:
+          | T
+          | {
+              label?: T;
+              summary?: T;
+            };
+        at_risk?:
+          | T
+          | {
+              label?: T;
+              summary?: T;
+            };
+      };
+  subScores?:
+    | T
+    | {
+        subScore?: T;
+        label?: T;
+        description?: T;
+        id?: T;
+      };
+  statusWords?:
+    | T
+    | {
+        good?: T;
+        ok?: T;
+        weak?: T;
+        na?: T;
+      };
+  flagsTitle?: T;
+  moreFlags?: T;
+  noFlags?: T;
+  savePrompt?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        benefits?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        cta?: T;
+        saved?: T;
+      };
+  blocks?:
+    | T
+    | {
+        allocation?: T;
+        effectiveMix?: T;
+        sectors?: T;
+        holdings?: T;
+        risk?: T;
+        benchmark?: T;
+        dataQuality?: T;
+      };
+  riskLabels?:
+    | T
+    | {
+        low?: T;
+        moderate?: T;
+        high?: T;
+        very_high?: T;
+      };
+  riskSentence?: T;
+  benchmarkAhead?: T;
+  benchmarkBehind?: T;
+  benchmarkPrompt?: T;
+  coverageChip?: T;
+  asOfChip?: T;
+  provisional?: T;
+  dataQualityLine?: T;
+  disclaimer?: T;
+  dashboardTitle?: T;
+  newCheckLabel?: T;
+  savedBanner?: T;
+  trendTitle?: T;
+  trendEmpty?: T;
+  alertsTitle?: T;
+  alertsEmpty?: T;
+  alertTemplates?:
+    | T
+    | {
+        scoreDrop?: T;
+        newFlag?: T;
+        limitCrossed?: T;
+        recheckDue?: T;
+      };
+  reminderLabel?: T;
+  reminderHelp?: T;
+  alertDropLabel?: T;
+  concentrationLabel?: T;
+  dataTitle?: T;
+  downloadLabel?: T;
+  deleteLabel?: T;
+  deleteConfirm?: T;
+  flags?:
+    | T
+    | {
+        rule?: T;
+        title?: T;
+        why?: T;
+        explainerUrl?: T;
+        id?: T;
+      };
+  errors?:
+    | T
+    | {
+        code?: T;
+        message?: T;
+        id?: T;
+      };
+  plansTitle?: T;
+  plansIntro?: T;
+  plans?:
+    | T
+    | {
+        planId?: T;
+        name?: T;
+        pricePaise?: T;
+        period?: T;
+        features?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        cta?: T;
+        id?: T;
+      };
+  refundLine?: T;
+  lockedFallback?: T;
+  lockedCards?:
+    | T
+    | {
+        card?: T;
+        plan?: T;
+        title?: T;
+        teaser?: T;
+        id?: T;
+      };
+  approval?:
+    | T
+    | {
+        reference?: T;
+        approvedOn?: T;
+        approvedBy?: T;
+        notes?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "scan-config_select".
+ */
+export interface ScanConfigSelect<T extends boolean = true> {
+  weights?:
+    | T
+    | {
+        diversification?: T;
+        concentration?: T;
+        risk?: T;
+        assetMix?: T;
+        cost?: T;
+      };
+  effectiveHoldings?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  effectiveSectors?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  top1?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  top5?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  volRatio?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  ter?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  regularShare?:
+    | T
+    | {
+        bad?: T;
+        good?: T;
+      };
+  bands?:
+    | T
+    | {
+        healthy?: T;
+        fair?: T;
+        attention?: T;
+      };
+  criticalCap?: T;
+  provisionalBelow?: T;
+  penalties?:
+    | T
+    | {
+        oneClassAbove90?: T;
+        oneClass80to90?: T;
+        equityNoDebtGold?: T;
+        cashAbove25?: T;
+        cash10to25?: T;
+        shortHorizonEquity?: T;
+        goldAbove20?: T;
+        thematicAbove30?: T;
+      };
+  flags?:
+    | T
+    | {
+        singleStock?: T;
+        singleStockCritical?: T;
+        top5?: T;
+        sector?: T;
+        equityShortHorizon?: T;
+        cash?: T;
+        regularShare?: T;
+        fundsPerCategory?: T;
+        equityFunds?: T;
+        smallCap?: T;
+        volRatio?: T;
+        benchmarkGap?: T;
+        unpriced?: T;
+        thematic?: T;
+      };
+  severities?:
+    | T
+    | {
+        R01?: T;
+        R02?: T;
+        R03?: T;
+        R04?: T;
+        R05?: T;
+        R06?: T;
+        R07?: T;
+        R08?: T;
+        R09?: T;
+        R10?: T;
+        R11?: T;
+        R12?: T;
+        R13?: T;
+        R14?: T;
+      };
+  freeFlagsShown?: T;
+  paid?:
+    | T
+    | {
+        assumedReturn?: T;
+        dragYears?: T;
+        singleStockFall?: T;
+        cashYield?: T;
+        riskFreeRate?: T;
+      };
+  maxHoldings?: T;
+  maxFileMb?: T;
   approval?:
     | T
     | {

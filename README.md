@@ -9,7 +9,7 @@ Requirements: Node 20.18+, pnpm, Postgres 17 (`brew install postgresql@17 && bre
 
 ```bash
 createdb timesarrow
-cp .env.example .env    # fill PAYLOAD_SECRET and SEED_PASSWORD
+cp .env.example .env.local    # local values; production values go in .env.production (both gitignored)
 pnpm install
 pnpm seed               # loads the Figma copy + local test users
 pnpm dev                # http://localhost:3000, CMS at /admin

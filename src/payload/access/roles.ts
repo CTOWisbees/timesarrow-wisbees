@@ -16,6 +16,8 @@ export const authenticated: Access = ({ req }) => Boolean(req.user)
 export const adminOnly: Access = ({ req }) => hasRole(req.user, 'admin')
 export const adminOrCompliance: Access = ({ req }) => hasRole(req.user, 'admin', 'compliance')
 export const adminFieldOnly: FieldAccess = ({ req }) => hasRole(req.user, 'admin')
+/** Staff-only fields (e.g. risk scores): stripped from public API responses and page renders. */
+export const adminOrComplianceField: FieldAccess = ({ req }) => hasRole(req.user, 'admin', 'compliance')
 
 /**
  * Public visitors only ever see published content. Logged-in staff can also read
