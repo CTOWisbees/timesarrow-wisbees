@@ -46,10 +46,28 @@ function databaseUri(uri?: string) {
   return `${uri}${uri.includes('?') ? '&' : '?'}options=-c%20search_path%3Dpublic`
 }
 
+/**
+ * Origins allowed to use the admin and the API with a login cookie. Payload only trusts its own
+ * serverURL by default, so signing in on any other address (a second domain, the *.vercel.app
+ * address) loads the admin but every save, publish or user change is refused as "not allowed".
+ * Vercel's production domain is added automatically; extra ones go in ALLOWED_ORIGINS (comma separated).
+ */
+const trustedOrigins = [
+  siteUrl,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  process.env.VERCEL_URL,
+  ...(process.env.ALLOWED_ORIGINS?.split(',') ?? []),
+]
+  .map((o) => o?.trim().replace(/\/$/, ''))
+  .filter((o): o is string => Boolean(o))
+  .map((o) => (/^https?:\/\//.test(o) ? o : `https://${o}`))
+
 const previewUrl = (pathname: string) => `${siteUrl}/api/preview?path=${encodeURIComponent(pathname)}`
 
 export default buildConfig({
   serverURL: siteUrl,
+  csrf: trustedOrigins,
+  cors: trustedOrigins,
   admin: {
     user: Users.slug,
     meta: {
