@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "payload migrate && next build",
+    "build": "payload run src/scripts/db/migrate-guard.ts && payload migrate && next build",
     "build:local": "next build",
     "start": "next start",
     "lint": "eslint .",

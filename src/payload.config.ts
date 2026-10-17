@@ -71,7 +71,10 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
-    pool: { connectionString: process.env.DATABASE_URI || '' },
+    // Use Supabase's *session* pooler (port 5432). The transaction pooler (6543) starts every
+    // connection with an empty search_path, so table names are not found. Session mode has a small
+    // connection budget, so each serverless instance keeps its pool tiny.
+    pool: { connectionString: process.env.DATABASE_URI || '', max: Number(process.env.DATABASE_POOL_MAX) || (isLocalDatabase(process.env.DATABASE_URI) ? 10 : 3), idleTimeoutMillis: 10_000 },
     migrationDir: path.resolve(dirname, 'migrations'),
     // Dev pushes schema changes automatically, but only into a local database. Remote
     // databases (Supabase) must only ever change through migrations, or `payload migrate`

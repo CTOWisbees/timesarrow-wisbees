@@ -37,12 +37,14 @@ manage users. Every published change is kept in version history.
 ## Deploying to Vercel
 
 1. Create a Supabase project in **ap-south-1 (Mumbai)**.
-   - Database → connection string (Transaction pooler, port 6543) → `DATABASE_URI`
+   - Database → connection string (**Session pooler**, port 5432, not the transaction pooler) → `DATABASE_URI`
    - Storage → create a bucket `media` (files are served through `/api/media`, so it can stay private); Storage → S3 connection → `S3_*` keys
 2. Import the repo in Vercel and set the env vars from `.env.example`
    (`NEXT_PUBLIC_SITE_URL=https://timesarrow.wisbees.com`, `SITE_INDEXABLE=false`).
    Do **not** set `SEED_PASSWORD` in production.
-3. The build runs `payload migrate` before `next build`, so the schema is created on first deploy.
+3. The build runs `payload migrate` before `next build`, so the schema is created on first deploy. If the database ever
+   holds a schema pushed in dev mode, the build stops with instructions instead of hanging (see
+   `src/scripts/db/migrate-guard.ts`). Load market data once with `pnpm market all` (see CLAUDE.md).
 4. Create the first admin at `https://timesarrow.wisbees.com/admin`, then add content (or run
    `pnpm seed` once locally against the production `DATABASE_URI`).
 5. Domain: add `timesarrow.wisbees.com` in Vercel → Domains, then a DNS record at the wisbees.com
