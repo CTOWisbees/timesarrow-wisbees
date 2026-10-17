@@ -5,7 +5,7 @@
  */
 
 export const portfolioScan = {
-  title: 'Portfolio Scan',
+  title: 'Port Scan',
   intro: 'Add what you hold and get a 0–100 health score in under a minute.',
   trustLine: 'Free. No PAN or phone number needed.',
   uploadTab: 'Upload statement',

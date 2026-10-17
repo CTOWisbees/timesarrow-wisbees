@@ -38,7 +38,7 @@ const LOCKED_CARDS = [
 
 export const PortfolioScan: GlobalConfig = contentGlobal({
   slug: 'portfolio-scan',
-  label: 'Portfolio Scan',
+  label: 'Port Scan',
   admin: {
     group: 'Site',
     description: 'All copy for the Portfolio Scan page and results. Thresholds live in Compliance → Portfolio Scan scoring.',

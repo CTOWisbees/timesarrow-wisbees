@@ -32,7 +32,7 @@ export const siteSettings = {
   navItems: [
     { label: 'Our offerings', href: '#portfolios' },
     { label: 'About', href: '#why-wisbees' },
-    { label: 'Portfolio Scan', href: '/portfolio-scan' },
+    { label: 'Port Scan', href: '/portfolio-scan' },
     { label: 'Tools', href: '/tools' },
     { label: 'Blogs', href: 'https://www.wisbees.com/' },
   ],
@@ -52,7 +52,7 @@ export const siteSettings = {
       links: [
         { label: 'Learn', href: '/coming-soon' },
         { label: 'Tools and calculators', href: '/tools' },
-        { label: 'Portfolio Scan', href: '/portfolio-scan' },
+        { label: 'Port Scan', href: '/portfolio-scan' },
         { label: 'Blogs', href: 'https://www.wisbees.com/' },
       ],
     },
