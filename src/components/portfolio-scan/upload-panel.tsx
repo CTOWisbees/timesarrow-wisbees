@@ -172,7 +172,7 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <div
         onDragOver={(e) => (e.preventDefault(), setDragging(true))}
         onDragLeave={() => setDragging(false)}
@@ -181,7 +181,7 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
           setDragging(false)
           take(e.dataTransfer.files[0])
         }}
-        className={cn('flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors', dragging ? 'border-primary bg-mint/40' : 'bg-mist/60')}
+        className={cn('flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-16 text-center transition-colors', dragging ? 'border-primary bg-mint/40' : 'bg-mist/60')}
       >
         <FileUp className="text-primary size-8" aria-hidden />
         <p className="text-ink font-heading text-xl font-semibold">{copy.dropTitle}</p>
@@ -200,7 +200,6 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
         <Button type="button" onClick={() => input.current?.click()} disabled={busy}>
           Choose a file
         </Button>
-        <p className="text-muted-foreground max-w-md text-xs leading-relaxed">{copy.acceptedSources}</p>
       </div>
 
       {busy && (
@@ -303,13 +302,6 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
         </div>
       )}
 
-      {copy.aaNote && (
-        <p className="text-muted-foreground flex items-start gap-2 rounded-xl border border-dashed px-4 py-3 text-sm" aria-disabled>
-          <Link2 className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {copy.aaNote}
-        </p>
-      )}
-
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
         <Sheet>
           <SheetTrigger asChild>
@@ -322,7 +314,7 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
               <SheetTitle className="font-heading text-2xl">{copy.whereTitle}</SheetTitle>
               <SheetDescription>{copy.acceptedSources}</SheetDescription>
             </SheetHeader>
-            <div className="mt-6 space-y-6">
+            <div className="mt-8 space-y-8">
               {copy.sources?.map((s) => (
                 <section key={s.id ?? s.name}>
                   <h3 className="font-sans text-base font-semibold">{s.name}</h3>
@@ -333,6 +325,12 @@ export function UploadPanel({ copy, maxFileMb, onParsed, onError }: Props) {
                   </ol>
                 </section>
               ))}
+              {copy.aaNote && (
+                <p className="text-muted-foreground flex items-start gap-2 border-t pt-6 text-sm">
+                  <Link2 className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  {copy.aaNote}
+                </p>
+              )}
             </div>
           </SheetContent>
         </Sheet>

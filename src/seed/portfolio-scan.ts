@@ -5,16 +5,16 @@
  */
 
 export const portfolioScan = {
-  title: 'Portfolio health check',
-  intro: 'Add what you hold and get a 0–100 health score in under a minute: how spread out it is, how concentrated, how risky, what it costs, and what stands out.',
-  trustLine: 'Free. No PAN, income or phone number needed.',
+  title: 'Portfolio Scan',
+  intro: 'Add what you hold and get a 0–100 health score in under a minute.',
+  trustLine: 'Free. No PAN or phone number needed.',
   uploadTab: 'Upload statement',
   manualTab: 'Enter manually',
   sampleLink: 'See a sample result',
   showSample: true,
   steps: { choose: 'Add holdings', review: 'Review', details: 'Details', results: 'Your score' },
   consentNotice:
-    'We read only the instruments, quantities and values you add. Names, PAN and account numbers in a file are discarded while reading it, and the file itself is not stored. Without an account, your portfolio is deleted after 24 hours. The analysis is used only to show you this report.',
+    'We read only the instruments, quantities and values you add. Names, PAN and account numbers in a file are discarded while reading it, and the file is not stored. Without an account, your portfolio is deleted after 24 hours.',
 
   dropTitle: 'Drop your statement here',
   dropHint: 'PDF, CSV or Excel, up to 10 MB',

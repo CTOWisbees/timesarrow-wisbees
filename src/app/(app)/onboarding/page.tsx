@@ -1,14 +1,10 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
-
-import { VariantSwitcher } from '@/components/dev/variant-switcher'
 import { ReviewStatus } from '@/components/onboarding/review-status'
 import { RiskProfileStep } from '@/components/onboarding/risk'
 import { OnboardingShell } from '@/components/onboarding/shell'
 import { ensureApplication } from '@/lib/applications'
 import { getOnboarding, getRiskProfileQuestions } from '@/lib/queries'
-import { resolveVariant, variantPreviewEnabled } from '@/lib/section-variants'
 import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
 import { getCurrentUser } from '@/lib/supabase/server'
 
@@ -20,23 +16,16 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>
 export default async function OnboardingPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
   const [content, questions] = await Promise.all([getOnboarding(), getRiskProfileQuestions()])
-  const variant = resolveVariant('onboardingProfile', content.verify.layout, variantPreviewEnabled() ? params : {})
-  const devMenu = variantPreviewEnabled() && (
-    <Suspense>
-      <VariantSwitcher sections={['onboardingProfile']} live={{ onboardingProfile: content.verify.layout }} />
-    </Suspense>
-  )
 
   // Local demo: any step, no sign-in, nothing saved.
   if (demoModeEnabled() && (params.step === '2' || params.step === '3')) {
     return params.step === '3' ? (
-      <OnboardingShell brand={content.brand} step={3}>
+      <OnboardingShell step={3}>
         <ReviewStatus title={content.review.title} message={content.review.message} name="Asha" submittedAt={new Date().toISOString()} />
       </OnboardingShell>
     ) : (
-      <OnboardingShell brand={content.brand} step={2}>
-        <RiskProfileStep variant={variant} content={questions} consentText={null} demo />
-        {devMenu}
+      <OnboardingShell step={2}>
+        <RiskProfileStep content={questions} consentText={null} firstName="Asha" demo />
       </OnboardingShell>
     )
   }
@@ -48,7 +37,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
 
   if (application.status !== 'profile_pending') {
     return (
-      <OnboardingShell brand={content.brand} step={3}>
+      <OnboardingShell step={3}>
         <ReviewStatus
           title={content.review.title}
           message={content.review.message}
@@ -60,14 +49,13 @@ export default async function OnboardingPage({ searchParams }: { searchParams: S
   }
 
   return (
-    <OnboardingShell brand={content.brand} step={2}>
+    <OnboardingShell step={2}>
       <RiskProfileStep
-        variant={variant}
         content={questions}
         consentText={application.consentAt ? null : content.account.consentText}
         email={application.email}
+        firstName={application.fullName.split(' ')[0]}
       />
-      {devMenu}
     </OnboardingShell>
   )
 }

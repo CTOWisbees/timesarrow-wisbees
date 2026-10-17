@@ -37,7 +37,7 @@ export default async function ToolPage({ params }: { params: Params }) {
         </div>
       </div>
 
-      <div className="container-page grid gap-8 py-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-10">
+      <div className="container-page grid gap-8 py-8 md:py-12 lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-10">
         <div className="flex min-w-0 flex-col gap-6">
           <CalculatorView key={def.slug} slug={def.slug} />
 

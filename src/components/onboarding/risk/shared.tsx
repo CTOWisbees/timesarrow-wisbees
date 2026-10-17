@@ -19,6 +19,8 @@ export type RiskStepProps = {
   /** Shown only to Google sign-ups, who have not given consent yet. */
   consentText: string | null
   email?: string
+  /** For the greeting. */
+  firstName?: string
   /** Local demo: submitting just moves to step 3. */
   demo?: boolean
 }

@@ -15,7 +15,8 @@ export const Onboarding: GlobalConfig = contentGlobal({
       tabs: [
         {
           name: 'brand',
-          label: 'Left panel',
+          label: 'Left panel (no longer shown)',
+          admin: { condition: () => false },
           fields: [
             { name: 'headline', type: 'textarea', required: true, admin: { description: 'One line per row. Keep it short.' } },
             { name: 'message', type: 'textarea', admin: { description: 'One or two sentences under the headline.' } },
@@ -56,7 +57,7 @@ export const Onboarding: GlobalConfig = contentGlobal({
               required: true,
               defaultValue: 'focus',
               options: variantOptions('onboardingProfile'),
-              admin: { description: 'How the risk-profile questions are presented. The questions themselves are in "Risk profile questions".' },
+              admin: { hidden: true, description: 'No longer used: every step is now a conversation. The questions themselves are in "Risk profile questions".' },
             },
           ],
         },

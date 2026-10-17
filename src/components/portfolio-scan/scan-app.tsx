@@ -1,7 +1,7 @@
 'use client'
 
 import { track } from '@vercel/analytics'
-import { ArrowLeft, Banknote, ClipboardPaste, Loader2, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Banknote, ChevronDown, ClipboardPaste, Loader2, ShieldCheck } from 'lucide-react'
 import { useState, useTransition } from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -174,21 +174,21 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
 
   return (
     <div className="bg-paper">
-      <div className="container-page py-10 md:py-14">
-        <header className="max-w-3xl">
+      <div className="container-page py-14 md:py-20">
+        <header className="max-w-2xl">
           <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">{copy.title}</h1>
           {step !== 'results' && (
             <>
-              <p className="text-ink-soft mt-4 text-lg leading-relaxed">{copy.intro}</p>
-              <p className="text-ink mt-3 flex items-center gap-2 text-sm font-medium">
-                <ShieldCheck className="text-primary size-4" aria-hidden />
+              <p className="text-ink-soft mt-5 text-base leading-relaxed md:text-lg">{copy.intro}</p>
+              <p className="bg-mint text-brand-green-strong mt-6 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium">
+                <ShieldCheck className="size-4" aria-hidden />
                 {copy.trustLine}
               </p>
             </>
           )}
         </header>
 
-        <ol className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Progress">
+        <ol className="mt-12 flex flex-wrap gap-x-8 gap-y-2 text-sm" aria-label="Progress">
           {stepLabels.map((label, i) => (
             <li key={label} aria-current={i === stepIndex ? 'step' : undefined} className={cn('flex items-center gap-2', i === stepIndex ? 'text-ink font-semibold' : i < stepIndex ? 'text-ink-soft' : 'text-muted-foreground')}>
               <span aria-hidden className={cn('size-2 rounded-full', i <= stepIndex ? 'bg-primary' : 'bg-border')} />
@@ -204,8 +204,8 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
         )}
 
         {step === 'choose' && (
-          <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div className="bg-card min-w-0 rounded-3xl border p-5 sm:p-8">
+          <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-14">
+            <div className="bg-card min-w-0 rounded-3xl border p-6 sm:p-10">
               <Tabs defaultValue="manual">
                 <TabsList className="w-full sm:w-auto">
                   <TabsTrigger value="upload">{copy.uploadTab}</TabsTrigger>
@@ -242,13 +242,19 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
               </Tabs>
             </div>
 
-            <aside className="space-y-4 lg:pt-2">
-              <p className="text-ink-soft text-sm leading-relaxed">{copy.consentNotice}</p>
+            <aside className="space-y-8 lg:pt-2">
               {copy.showSample && (
-                <Button variant="link" className="h-auto p-0" onClick={sample} disabled={pending}>
-                  {copy.sampleLink}
+                <Button variant="outline" size="lg" className="w-full" onClick={sample} disabled={pending}>
+                  {pending ? 'Preparing sample…' : copy.sampleLink}
                 </Button>
               )}
+              <details className="group text-sm">
+                <summary className="text-ink hover:text-primary flex cursor-pointer list-none items-center justify-between gap-2 font-medium [&::-webkit-details-marker]:hidden">
+                  How we handle your data
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
+                </summary>
+                <p className="text-ink-soft mt-3 leading-relaxed">{copy.consentNotice}</p>
+              </details>
             </aside>
 
             <StickyBar>
@@ -263,10 +269,10 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
         )}
 
         {step === 'review' && (
-          <div className="mt-6 space-y-6">
-            <div className="max-w-3xl">
+          <div className="mt-10 space-y-8">
+            <div className="max-w-2xl">
               <h2 className="text-2xl font-semibold tracking-tight">{copy.reviewTitle}</h2>
-              <p className="text-ink-soft mt-2">{copy.reviewIntro}</p>
+              <p className="text-ink-soft mt-3">{copy.reviewIntro}</p>
             </div>
             <div className="text-ink flex flex-wrap gap-x-6 gap-y-1 text-sm">
               <span>
@@ -305,10 +311,10 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
         )}
 
         {step === 'details' && (
-          <div className="mt-6 max-w-2xl space-y-6">
+          <div className="mt-10 max-w-2xl space-y-8">
             <h2 className="text-2xl font-semibold tracking-tight">{copy.detailsTitle}</h2>
-            <div className="bg-card space-y-7 rounded-3xl border p-5 sm:p-8">
-              <fieldset className="space-y-3">
+            <div className="bg-card space-y-10 rounded-3xl border p-6 sm:p-10">
+              <fieldset className="space-y-4">
                 <legend className="text-ink text-sm font-semibold">{copy.holdingPeriodLabel}</legend>
                 <p className="text-muted-foreground -mt-1 text-sm">{copy.holdingPeriodWhy}</p>
                 <ToggleGroup type="single" value={period} onValueChange={(v) => setPeriod(v as HoldingPeriod | '')} spacing={2} className="flex flex-wrap" aria-label={copy.holdingPeriodLabel}>
@@ -332,7 +338,7 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
                   />
                 </div>
               </fieldset>
-              <fieldset className="space-y-3">
+              <fieldset className="space-y-4">
                 <legend className="text-ink text-sm font-semibold">{copy.horizonLabel}</legend>
                 <p className="text-muted-foreground -mt-1 text-sm">{copy.horizonWhy}</p>
                 <ToggleGroup type="single" value={horizon} onValueChange={(v) => setHorizon(v as Horizon | '')} spacing={2} className="flex flex-wrap" aria-label={copy.horizonLabel}>
@@ -343,7 +349,7 @@ export function ScanApp({ copy, benchmarks, initialView, signedIn, demoMode, max
                   ))}
                 </ToggleGroup>
               </fieldset>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="benchmark" className="text-ink text-sm font-semibold">
                   {copy.benchmarkLabel}
                 </Label>

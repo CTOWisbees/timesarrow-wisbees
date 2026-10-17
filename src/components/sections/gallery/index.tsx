@@ -22,7 +22,7 @@ export function Gallery({
     case 'split':
       return <GallerySplit data={data} items={items} intervalMs={intervalMs} />
     case 'collage':
-      return <GalleryCollage data={data} items={items} />
+      return <GalleryCollage data={data} items={items} intervalMs={intervalMs} />
     case 'mosaic':
       return <GalleryMosaic data={data} items={items} />
     default:

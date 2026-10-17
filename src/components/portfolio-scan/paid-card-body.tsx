@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { formatInr } from '@/lib/format-inr'
 import type { CardId } from '@/lib/portfolio/entitlements'
 import type { RebalanceClass } from '@/lib/portfolio/paid'
-import type { DragCard, DrawdownCard, OverlapCard, Point, RatiosCard, RebalanceCard, ReturnsCard, StressCard, TaxCard } from '@/lib/portfolio/paid-cards'
+import type { DragCard, DrawdownCard, OverlapCard, Point, RatiosCard, RebalanceCard, ReturnsCard, StressCard } from '@/lib/portfolio/paid-cards'
 import { parseAmount } from '@/lib/portfolio/numbers'
 import { cn } from '@/lib/utils'
 
@@ -52,7 +52,7 @@ export function PaidCardBody({ id, data, benchmark, portfolioId }: { id: CardId;
     case 'rebalance':
       return <Rebalance d={data as RebalanceCard} portfolioId={portfolioId} />
     case 'tax':
-      return <Tax d={data as TaxCard} />
+      return null // Tax view removed from the page (product decision, Oct 2026)
     case 'whatif':
       return <WhatIf portfolioId={portfolioId} />
   }
@@ -325,44 +325,6 @@ function MixRow({ label, mix, total }: { label: string; mix: Record<RebalanceCla
         ))}
       </div>
       <span className="text-muted-foreground w-44 text-right text-xs tabular-nums">{CLASSES.map((c) => `${Math.round((mix[c] / total) * 100)}`).join(' / ')}</span>
-    </div>
-  )
-}
-
-function Tax({ d }: { d: TaxCard }) {
-  if (!d.available) return <p className="text-ink-soft text-sm">The tax view needs your purchase history. Upload a detailed CAS (with transactions) to see it.</p>
-  return (
-    <div className="space-y-4 text-sm">
-      <div className="flex flex-wrap gap-x-8 gap-y-3">
-        <Stat label="Estimated tax if sold today" value={formatInr(d.totalTax)} />
-        <Stat label="Tax-free long-term gains left this year" value={formatInr(d.headroom)} />
-      </div>
-      <table className="w-full">
-        <thead className="text-ink-soft text-left text-xs">
-          <tr>
-            <th className="py-2 font-medium">Holding</th>
-            <th className="py-2 text-right font-medium">Short-term gain</th>
-            <th className="py-2 text-right font-medium">Long-term gain</th>
-            <th className="py-2 text-right font-medium">Tax</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {d.rows.map((r) => (
-            <tr key={r.name}>
-              <td className="text-ink py-2">{r.name}</td>
-              <td className="py-2 text-right tabular-nums">{signed(r.shortTermGain)}</td>
-              <td className="py-2 text-right tabular-nums">{signed(r.longTermGain)}</td>
-              <td className="text-ink py-2 text-right font-medium tabular-nums">{formatInr(r.tax)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <ul className="text-muted-foreground list-disc space-y-0.5 pl-4 text-xs">
-        {d.assumptions.map((a) => (
-          <li key={a}>{a}</li>
-        ))}
-        <li>An estimate, not tax advice. Check with a tax professional.</li>
-      </ul>
     </div>
   )
 }

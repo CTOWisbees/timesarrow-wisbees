@@ -67,7 +67,7 @@ chatbot) build on this same app.
   in that project's Auth users.
 
 ## Portfolio Scan (`/portfolio-scan`, signed-in `/portfolio`)
-- Free health check: upload (CAS PDF read in the browser, broker CSV/XLSX on the server) or manual entry → review →
+- Free scan: upload (CAS PDF read in the browser, broker CSV/XLSX on the server) or manual entry → review →
   optional details → 0–100 score, five sub-scores, red flags R01–R14, charts. Paid plans (Insights ₹99, Pro ₹199) add
   look-through, drag, drawdown, stress, ratios, rebalance, tax, what-if, PDF, alerts.
 - Engine is pure TypeScript in `src/lib/portfolio/` (metrics, scoring, rules, paid, ingest; unit tested). Server-only

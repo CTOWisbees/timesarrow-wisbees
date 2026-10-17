@@ -37,7 +37,7 @@ function Report({ view, copy }: { view: ScanView; copy: PortfolioScan }) {
   const stress = card<StressCard>('stress')
   const ratios = card<RatiosCard>('ratios')
   return (
-    <Document title="WisBees portfolio health report" author="WisBees">
+    <Document title="WisBees Portfolio Scan report" author="WisBees">
       <Page size="A4" style={s.page}>
         <Text style={s.h1}>{copy.title}</Text>
         <Text style={s.muted}>
