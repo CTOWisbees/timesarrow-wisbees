@@ -33,7 +33,7 @@ function Group({ title, items, activeSlug }: { title: string; items: CalculatorD
 
 export function ToolsSidebar({ activeSlug }: { activeSlug?: string }) {
   return (
-    <aside className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">
+    <aside className="flex flex-col gap-6 lg:order-first lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">
       <Group title="Popular Calculators" items={POPULAR} activeSlug={activeSlug} />
       <Group title="Mutual Fund Calculators" items={MUTUAL_FUND} activeSlug={activeSlug} />
     </aside>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
-import { AuthPanel } from '@/components/onboarding/auth-panel'
+import { AccountChat } from '@/components/onboarding/account-chat'
 import { OnboardingShell } from '@/components/onboarding/shell'
 import { safeNext } from '@/lib/next-path'
 import { getOnboarding } from '@/lib/queries'
@@ -20,9 +20,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getCurrentUser()) redirect(safeNext(next))
 
   return (
-    <OnboardingShell brand={content.brand} step={1}>
-      <AuthPanel
-        copy={{ ...content.account, ...content.verify }} initialError={error ? errors[error] : undefined}
+    <OnboardingShell step={1}>
+      <AccountChat
+        copy={{ ...content.account, ...content.verify }}
+        initialError={error ? errors[error] : undefined}
         devBypass={devAuthBypassEnabled()}
         demo={demoModeEnabled()}
       />

@@ -884,7 +884,7 @@ export interface HomePage {
      */
     fieldIcons?: ('name' | 'email' | 'phone' | 'day' | 'time')[] | null;
     /**
-     * From Bookings → Booking page → Embed (copy the link). The page must be published and open to anyone, not only your organisation.
+     * In Microsoft Bookings open Booking page → Share and copy the link (an embed address works too). The page must be published with access for "Anyone", not only your organisation, or visitors will see a sign-in screen or an empty frame. Leave empty to show a short "not available" note.
      */
     msBookingsUrl?: string | null;
     msBookingsDisplay?: ('embed' | 'link') | null;
@@ -1004,7 +1004,7 @@ export interface SiteSetting {
  */
 export interface Onboarding {
   id: number;
-  brand: {
+  brand?: {
     /**
      * One line per row. Keep it short.
      */
@@ -1032,7 +1032,7 @@ export interface Onboarding {
     verifyTitle: string;
     verifyDescription?: string | null;
     /**
-     * How the risk-profile questions are presented. The questions themselves are in "Risk profile questions".
+     * No longer used: every step is now a conversation. The questions themselves are in "Risk profile questions".
      */
     layout: 'focus' | 'single-page' | 'conversation';
   };

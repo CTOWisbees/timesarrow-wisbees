@@ -1,16 +1,9 @@
 import { ArrowUpRight, CalendarDays } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { bookingsLinks } from '@/lib/bookings'
 
-/** Only https Microsoft booking pages are framed or linked. */
-const isBookingsUrl = (url?: string | null) => {
-  try {
-    const u = new URL(url ?? '')
-    return u.protocol === 'https:' && /(^|\.)office(365)?\.com$/.test(u.hostname)
-  } catch {
-    return false
-  }
-}
+import { BookingsFrame } from './bookings-frame'
 
 /**
  * Layout "Microsoft Bookings": the team's public Bookings page, embedded or as a button.
@@ -29,21 +22,17 @@ export function BookCallMsBookings({
   note?: string | null
 }) {
   const label = linkLabel || 'Open the booking page'
-  if (!isBookingsUrl(url)) {
+  const links = bookingsLinks(url)
+  if (!links) {
     return (
       <div className="bg-mist text-ink-soft rounded-2xl border border-dashed p-8 text-sm leading-relaxed">
-        The Microsoft Bookings page is not set yet. Add its link in the CMS under Home page → Book a call → Microsoft Bookings.
+        Online booking is not available right now. Please check back soon.
+        {process.env.NODE_ENV !== 'production' && (
+          <span className="mt-3 block text-xs">Editors: add the Bookings link in the CMS under Home page → Book a call → Microsoft Bookings.</span>
+        )}
       </div>
     )
   }
-
-  const external = (
-    <a href={url!} target="_blank" rel="noopener noreferrer" className="text-primary inline-flex items-center gap-1 font-semibold underline-offset-4 hover:underline">
-      {label}
-      <ArrowUpRight className="size-4" aria-hidden />
-      <span className="sr-only"> (opens Microsoft Bookings in a new tab)</span>
-    </a>
-  )
 
   if (display === 'link') {
     return (
@@ -53,7 +42,7 @@ export function BookCallMsBookings({
         </span>
         {note && <p className="text-ink text-base leading-relaxed">{note}</p>}
         <Button asChild size="cta">
-          <a href={url!} target="_blank" rel="noopener noreferrer">
+          <a href={links.share} target="_blank" rel="noopener noreferrer">
             {label}
             <ArrowUpRight className="size-4" aria-hidden />
           </a>
@@ -65,14 +54,7 @@ export function BookCallMsBookings({
   return (
     <div className="space-y-3">
       {note && <p className="text-ink-soft text-sm leading-relaxed">{note}</p>}
-      <iframe
-        src={url!}
-        title="Book a call with WisBees (Microsoft Bookings)"
-        loading="lazy"
-        referrerPolicy="strict-origin-when-cross-origin"
-        className="bg-card h-[min(44rem,78svh)] w-full rounded-2xl border"
-      />
-      <p className="text-muted-foreground text-sm">Not loading? {external}</p>
+      <BookingsFrame embedUrl={links.embed} shareUrl={links.share} label={label} />
     </div>
   )
 }

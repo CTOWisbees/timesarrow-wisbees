@@ -2,6 +2,7 @@ import type { Field, GlobalConfig, Tab } from 'payload'
 
 import { complianceToggle } from '../fields/approval'
 import { linkGroup } from '../fields/link'
+import { validateBookingsUrl } from '@/lib/bookings'
 import { SECTION_TOGGLES, variantOptions } from '@/lib/section-variants'
 
 import { contentGlobal } from '../workflow'
@@ -164,9 +165,11 @@ export const HomePage: GlobalConfig = contentGlobal({
                 name: 'msBookingsUrl',
                 label: 'Booking page link',
                 type: 'text',
+                validate: (value: string | null | undefined) => validateBookingsUrl(value),
                 admin: {
+                  placeholder: 'https://outlook.office365.com/book/YourPage@yourcompany.com/',
                   description:
-                    'From Bookings → Booking page → Embed (copy the link). The page must be published and open to anyone, not only your organisation.',
+                    'In Microsoft Bookings open Booking page → Share and copy the link (an embed address works too). The page must be published with access for "Anyone", not only your organisation, or visitors will see a sign-in screen or an empty frame. Leave empty to show a short "not available" note.',
                 },
               },
               {

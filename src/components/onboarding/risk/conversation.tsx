@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { Pencil } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -9,16 +8,15 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { cn } from '@/lib/utils'
 
+import { BotMessage, enter, UserBubble } from '../chat-ui'
 import { type Answers, type RiskStepProps, SignOutLink, SubmitBlock, prefersReducedMotion, useRiskSubmit } from './shared'
-
-const enter = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300'
 
 /**
  * Variant "conversation": the questions arrive one by one as messages from the
  * adviser; the applicant answers by tapping a reply, which turns into their own
  * bubble. Any earlier reply can be changed. Ends with a short sign-off and Submit.
  */
-export function RiskConversation({ content, consentText, email, demo }: RiskStepProps) {
+export function RiskConversation({ content, consentText, email, firstName, demo }: RiskStepProps) {
   const { questions } = content
   const [answers, setAnswers] = useState<Answers>({})
   const [editing, setEditing] = useState<string | null>(null)
@@ -42,6 +40,7 @@ export function RiskConversation({ content, consentText, email, demo }: RiskStep
   return (
     <div id="risk-profile" role="log" aria-label="Risk profile questions" className="space-y-4">
       <AdviserMessage>
+        {firstName && <p className="text-ink-soft">Hi {firstName}, you are all set up.</p>}
         <p className="font-heading text-ink text-lg leading-snug font-semibold">{content.title}</p>
         {content.description && <p className="text-ink-soft mt-1.5 text-[0.95rem] leading-relaxed">{content.description}</p>}
       </AdviserMessage>
@@ -61,14 +60,14 @@ export function RiskConversation({ content, consentText, email, demo }: RiskStep
                 value={answers[q.key] ?? ''}
                 onValueChange={(v) => choose(q.key, v)}
                 aria-label={q.question}
-                className={cn('flex flex-wrap justify-end gap-2 pl-10', enter)}
+                className={cn('flex flex-wrap justify-end gap-2.5 pl-11', enter)}
               >
                 {q.answers.map((a) => (
                   <Label
                     key={a.id}
                     htmlFor={`cv-${q.key}-${a.id}`}
                     className={cn(
-                      'border-primary/40 text-brand-green-strong bg-card max-w-full cursor-pointer rounded-2xl border px-4 py-2.5 text-left text-sm leading-snug font-medium transition-colors',
+                      'border-primary/40 text-brand-green-strong bg-card max-w-full cursor-pointer rounded-2xl border px-4 py-3 text-left text-sm leading-snug font-medium transition-colors',
                       'hover:bg-mint has-[:focus-visible]:ring-ring/50 has-[:focus-visible]:ring-3 has-[[data-state=checked]]:bg-primary has-[[data-state=checked]]:text-white',
                     )}
                   >
@@ -79,9 +78,7 @@ export function RiskConversation({ content, consentText, email, demo }: RiskStep
               </RadioGroup>
             ) : (
               <div className={cn('flex flex-col items-end gap-1', enter)}>
-                <p className="bg-primary max-w-[85%] rounded-2xl rounded-tr-md px-4 py-2.5 text-[0.95rem] leading-snug text-white">
-                  {chosen.label}
-                </p>
+                <UserBubble className="animate-none">{chosen.label}</UserBubble>
                 <Button
                   type="button"
                   variant="link"
@@ -106,7 +103,7 @@ export function RiskConversation({ content, consentText, email, demo }: RiskStep
             {email && <p className="text-muted-foreground mt-1.5 text-xs break-all">Signed in as {email}</p>}
           </AdviserMessage>
           <SubmitBlock
-            className={cn('pl-10', enter)}
+            className={cn('pl-11', enter)}
             consentText={consentText}
             submitLabel={content.submitLabel}
             state={state}
@@ -122,14 +119,5 @@ export function RiskConversation({ content, consentText, email, demo }: RiskStep
 }
 
 function AdviserMessage({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn('flex items-start gap-2.5', className)}>
-      <span className="bg-card mt-0.5 flex size-7.5 shrink-0 items-center justify-center overflow-hidden rounded-full border" aria-hidden>
-        <Image src="/brand/wisbees-mark.png" alt="" width={22} height={22} />
-      </span>
-      <div className="bg-card max-w-[92%] rounded-2xl rounded-tl-md border px-4 py-3 shadow-[0_1px_2px_rgb(16_34_27/0.04)]">
-        {children}
-      </div>
-    </div>
-  )
+  return <BotMessage className={className}>{children}</BotMessage>
 }

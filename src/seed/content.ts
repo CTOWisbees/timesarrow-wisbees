@@ -52,7 +52,7 @@ export const siteSettings = {
       links: [
         { label: 'Learn', href: '/coming-soon' },
         { label: 'Tools and calculators', href: '/tools' },
-        { label: 'Portfolio health', href: '/portfolio-scan' },
+        { label: 'Portfolio Scan', href: '/portfolio-scan' },
         { label: 'Blogs', href: 'https://www.wisbees.com/' },
       ],
     },
@@ -198,7 +198,7 @@ const investorCharter = [
 export const sebiDisclosure = {
   firmName: 'Wisbees Advisory partner',
   registeredAddress: 'I-804, Konark Ochid, Kesnand Road, Wagholi, Pune, Maharashtra – 412207',
-  phone: '98508 96221',
+  phone: '74997 92579',
   registrationType: 'Non-individual',
   sebiRegistrationNumber: '',
   validity: 'Valid till cancellation by SEBI',
@@ -207,7 +207,7 @@ export const sebiDisclosure = {
     'Western Regional Office - II, SEBI Bhavan, Panchvati 1st Lane, Gulbai Tekra Road, Ahmedabad - 380006, Gujarat.',
     "Alternatively, if you map directly to the Head Office: SEBI Bhavan, Plot No. C4-A, 'G' Block, Bandra-Kurla Complex, Bandra (East), Mumbai - 400051.",
   ].join('\n'),
-  principalOfficer: { name: 'Dr. Anuja Limbad', phone: '74054 68399', email: 'anuja.limbad@wisbees.com' },
+  principalOfficer: { name: 'Dr. Anuja Limbad', phone: '74997 92579', email: 'anuja.limbad@wisbees.com' },
   complianceOfficer: { name: 'Khushi Panda', phone: '82914 41234', email: 'khuship0506@gmail.com' },
   disclaimers: [
     { text: 'Investment in securities market are subject to market risks. Read all the related documents carefully before investing.' },
@@ -244,7 +244,7 @@ export const sebiDisclosure = {
     "Physical complaints can be sent to the Office of Investor Assistance and Education, Securities and Exchange Board of India, SEBI Bhavan, Plot No. C4-A, 'G' Block, Bandra-Kurla Complex, Bandra (E), Mumbai - 400 051.",
   escalationMatrix: [
     { designation: 'Compliance Officer', contactPerson: 'Khushi Panda', phone: '82914 41234', email: 'khuship0506@gmail.com' },
-    { designation: 'Principal Officer', contactPerson: 'Dr. Anuja Limbad', phone: '74054 68399', email: 'anuja.limbad@wisbees.com' },
+    { designation: 'Principal Officer', contactPerson: 'Dr. Anuja Limbad', phone: '74997 92579', email: 'anuja.limbad@wisbees.com' },
   ],
   complaintRows: [],
   monthlyDisposal: [],
@@ -429,8 +429,9 @@ export const homePage = {
     enabled: true,
     variant: 'two-step' as const,
     fieldIcons: ['day', 'time'] as ('name' | 'email' | 'phone' | 'day' | 'time')[],
-    // Placeholder until the team shares the real Bookings page (Bookings → Booking page → Embed).
-    msBookingsUrl: 'https://outlook.office365.com/book/cto@wisbees.com/',
+    // Empty until the team shares the real Bookings page (Bookings → Booking page → Share). The layout
+    // then shows a short "not available" note instead of a broken frame.
+    msBookingsUrl: '',
     msBookingsDisplay: 'embed' as const,
     msBookingsLinkLabel: 'Open the booking page',
     msBookingsNote: 'Choose a slot that suits you. You will get a calendar invite by email.',
