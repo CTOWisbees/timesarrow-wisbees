@@ -36,6 +36,16 @@ function isLocalDatabase(uri?: string) {
   }
 }
 
+/**
+ * Supabase's pooler (port 6543, transaction mode) starts connections with an empty
+ * search_path, so Payload cannot find its tables. Asking for `search_path=public` as a startup
+ * option fixes it, and is added here so a plain Supabase connection string just works.
+ */
+function databaseUri(uri?: string) {
+  if (!uri || !/pooler\.supabase\.com/.test(uri) || /[?&]options=/.test(uri)) return uri ?? ''
+  return `${uri}${uri.includes('?') ? '&' : '?'}options=-c%20search_path%3Dpublic`
+}
+
 const previewUrl = (pathname: string) => `${siteUrl}/api/preview?path=${encodeURIComponent(pathname)}`
 
 export default buildConfig({
@@ -71,10 +81,8 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   db: postgresAdapter({
-    // Use Supabase's *session* pooler (port 5432). The transaction pooler (6543) starts every
-    // connection with an empty search_path, so table names are not found. Session mode has a small
-    // connection budget, so each serverless instance keeps its pool tiny.
-    pool: { connectionString: process.env.DATABASE_URI || '', max: Number(process.env.DATABASE_POOL_MAX) || (isLocalDatabase(process.env.DATABASE_URI) ? 10 : 3), idleTimeoutMillis: 10_000 },
+    // Serverless: keep each instance's pool small so many instances stay within Supabase's limits.
+    pool: { connectionString: databaseUri(process.env.DATABASE_URI), max: Number(process.env.DATABASE_POOL_MAX) || (isLocalDatabase(process.env.DATABASE_URI) ? 10 : 5), idleTimeoutMillis: 10_000 },
     migrationDir: path.resolve(dirname, 'migrations'),
     // Dev pushes schema changes automatically, but only into a local database. Remote
     // databases (Supabase) must only ever change through migrations, or `payload migrate`

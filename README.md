@@ -37,7 +37,7 @@ manage users. Every published change is kept in version history.
 ## Deploying to Vercel
 
 1. Create a Supabase project in **ap-south-1 (Mumbai)**.
-   - Database → connection string (**Session pooler**, port 5432, not the transaction pooler) → `DATABASE_URI`
+   - Database → connection string (**Transaction pooler**, port 6543; not the session pooler, which fills up on Vercel) → `DATABASE_URI`
    - Storage → create a bucket `media` (files are served through `/api/media`, so it can stay private); Storage → S3 connection → `S3_*` keys
 2. Import the repo in Vercel and set the env vars from `.env.example`
    (`NEXT_PUBLIC_SITE_URL=https://timesarrow.wisbees.com`, `SITE_INDEXABLE=false`).
