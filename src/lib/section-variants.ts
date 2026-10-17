@@ -18,6 +18,7 @@ export const SECTION_VARIANTS = {
       { value: 'immersive', label: 'Immersive', hint: 'Full-screen photo, controls at the bottom' },
       { value: 'split', label: 'Split', hint: 'Photo beside the text, thumbnails below' },
       { value: 'mosaic', label: 'Mosaic', hint: 'Photo grid, no slideshow' },
+      { value: 'collage', label: 'Collage', hint: 'Tinted photo backdrop with a row of photo tiles' },
     ],
   },
   bookCall: {

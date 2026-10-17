@@ -855,7 +855,7 @@ export interface HomePage {
     /**
      * Which design of this section the website shows. Developers can preview the others locally.
      */
-    variant: 'immersive' | 'split' | 'mosaic';
+    variant: 'immersive' | 'split' | 'mosaic' | 'collage';
     title: string;
     cta: {
       label: string;

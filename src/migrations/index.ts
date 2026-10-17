@@ -13,6 +13,7 @@ import * as migration_20261010_094556_book_call_icons_bookings from './20261010_
 import * as migration_20261011_090000_market_data from './20261011_090000_market_data';
 import * as migration_20261011_094405_portfolio_scan_globals from './20261011_094405_portfolio_scan_globals';
 import * as migration_20261011_100000_scan_data from './20261011_100000_scan_data';
+import * as migration_20261017_173657_gallery_collage from './20261017_173657_gallery_collage';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20261011_100000_scan_data.up,
     down: migration_20261011_100000_scan_data.down,
-    name: '20261011_100000_scan_data'
+    name: '20261011_100000_scan_data',
+  },
+  {
+    up: migration_20261017_173657_gallery_collage.up,
+    down: migration_20261017_173657_gallery_collage.down,
+    name: '20261017_173657_gallery_collage'
   },
 ];
