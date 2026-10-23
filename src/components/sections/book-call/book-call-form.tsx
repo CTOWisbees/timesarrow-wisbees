@@ -1,11 +1,11 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarDays, CheckCircle2, Clock, Loader2, Mail, Phone, UserRound } from 'lucide-react'
+import { CalendarCheck, CalendarDays, Check, CheckCircle2, Clock, Loader2, Mail, Phone, UserRound } from 'lucide-react'
 import { useId, useMemo, useState, useSyncExternalStore } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -74,15 +74,22 @@ export function BookCallForm(props: BookCallProps) {
   )
 }
 
-/** Shown once the booking is saved. */
+/** Shown once the booking is saved: one centred column, so the check, title, slot and note line up. */
 export function BookedCard({ title, message, slot }: { title: string; message?: string | null; slot?: string }) {
   return (
-    <Alert role="status" className="bg-mint h-full content-center gap-3 border-0 p-8 text-base has-[>svg]:grid-cols-1">
-      <CheckCircle2 className="text-primary size-8!" aria-hidden />
-      <AlertTitle className="font-heading text-2xl font-semibold">{title}</AlertTitle>
-      {slot && <p className="text-brand-green-strong text-base font-semibold">{slot}</p>}
-      {message && <AlertDescription className="text-ink-soft text-base">{message}</AlertDescription>}
-    </Alert>
+    <div role="status" className="bg-mint flex h-full min-h-[22rem] flex-col items-center justify-center gap-4 rounded-2xl px-6 py-10 text-center sm:px-10">
+      <span className="bg-primary flex size-14 items-center justify-center rounded-full text-white shadow-[0_6px_16px_rgb(15_107_76/0.3)]" aria-hidden>
+        <Check className="size-7" strokeWidth={3} />
+      </span>
+      <h3 className="font-heading text-ink text-2xl font-semibold sm:text-3xl">{title}</h3>
+      {slot && (
+        <p className="bg-card text-brand-green-strong inline-flex max-w-full items-center gap-2 rounded-full border px-4 py-2 text-[0.95rem] font-semibold">
+          <CalendarCheck className="size-4 shrink-0" aria-hidden />
+          <span className="min-w-0 break-words">{slot}</span>
+        </p>
+      )}
+      {message && <p className="text-ink-soft max-w-sm text-base leading-relaxed">{message}</p>}
+    </div>
   )
 }
 

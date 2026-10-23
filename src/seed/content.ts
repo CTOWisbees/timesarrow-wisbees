@@ -348,47 +348,51 @@ export const riskProfile = {
 export const homePage = {
   hero: {
     enabled: true,
-    headline: 'Stop guessing the market.\nStart investing with precision.',
-    subheadline:
-      'Fee-only advice, a published reason behind every call, and model portfolios from ₹499 a month. Your money always stays in your own demat account.',
+    headline: 'Invest Smarter.\nAutomate Better.',
+    subheadline: 'Smart asset allocation, automatically executed across mutual funds, Commodity ETFs and SIFs.',
     secondaryCta: { label: 'Explore our offerings', href: '#portfolios' },
     primaryCta: { label: 'Talk to an expert', href: '#book-call' },
   },
   highlights: {
     enabled: true,
-    title: 'Advice built around you, not around products',
+    variant: 'checklist' as const,
+    title: 'Why WisBees?',
     subtitle: 'Six things you get from WisBees that you will not find in a commission-led advisory.',
     cta: { label: 'See our offerings', href: '#portfolios' },
     items: [
       {
-        title: 'Fee-only advisory',
-        description:
-          'You pay us a fee, and nobody else does. With no commissions, nothing nudges our advice toward one product over another.',
+        title: 'Technology-First Investing',
+        shortLabel: 'Technology-first',
+        description: 'Automated wealth management with zero human intervention.',
       },
       {
-        title: 'SEBI registered',
-        description:
-          'We are registered with SEBI, so our research and advice follow the regulator’s rules, and every recommendation comes with a reason you can read.',
+        title: 'SEBI registered fee only advisory',
+        shortLabel: 'SEBI registered, fee-only',
+        description: 'Every stock call backed by transparent, published rationale — not tips.',
       },
       {
-        title: 'Model portfolios',
+        title: 'Research-Backed Investment Strategies',
+        shortLabel: 'Research-backed',
         description:
-          'Ready-made portfolios matched to how much risk you are comfortable with, from ₹499 a month. Follow them as they are or adjust them to your goals.',
+          'Access alpha generating mathematical models/strategies supported by financial research, quantitative analysis and a clearly explained investment rationale.',
       },
       {
-        title: 'Portfolio advisory',
+        title: 'Transparent, Affordable customised services (Starting at Rs. 499 per month)',
+        shortLabel: 'Transparent & affordable',
         description:
-          'Rules-based models and our analysts look after your portfolio together, and tell you when it needs a change.',
+          'Ready-made, risk-mapped portfolios you can follow or adapt to your goals. Your money stays in your Dmat account —we never take custody.',
       },
       {
-        title: 'Customised services',
+        title: 'Ongoing portfolio rebalancing support',
+        shortLabel: 'Rebalancing support',
         description:
-          'Tell us what you are saving for. We shape the plan around your goals, at a price that stays affordable.',
+          'Track portfolio allocation, performance and risk through insightful dashboards, with alerts or rebalancing support when a review may be appropriate.',
       },
       {
-        title: '100% transparent',
+        title: 'Get free access to Wisbees ecosystem',
+        shortLabel: 'WisBees ecosystem',
         description:
-          'Your money and shares stay in your own demat account. We never hold them, and your dashboard shows every holding.',
+          'Discover additional value through the WisBees ecosystem, including investment magazines, newsletters, market updates, data tools and WBC events.',
       },
     ],
   },
@@ -484,34 +488,39 @@ export const modelPortfolios = [
 
 export const faqs = [
   {
-    question: 'What does fee-only mean?',
+    question: 'What is Wisbees Advisory Partner?',
     answer:
-      'We are paid only by the fees our clients pay us. We take no commission from any product, so we have no reason to push one over another.',
+      'Wisbees is a Registered Investment Advisor and a technology driven investment platform designed to simplify the investing through digital tools and goal-based investment solutions.',
   },
   {
-    question: 'Do you hold my money or shares?',
+    question: 'Do you actually manage my investments, or just give advice?',
     answer:
-      'No. Your money and shares always stay in your own bank and demat accounts. We never take custody of them.',
+      'We provide advisory — you execute. We recommend suitable investments and explain how to implement them; you place the transactions yourself. Your money stays in your control at all times.',
   },
   {
-    question: 'What does a model portfolio cost?',
+    question: 'Do I need to schedule a meeting before getting started?',
     answer:
-      'Model portfolios start from ₹499 a month. The full fee for each plan is shown to you before you subscribe.',
+      'Our intended experience is designed to minimise unnecessary manual interaction. Eligible services will be accessible digitally, subject to applicable onboarding, identity verification, risk assessment and regulatory requirements. A meeting or additional assistance may be needed in certain cases.',
   },
   {
-    question: 'How does sign-up work?',
+    question: 'What is tax harvesting and how does it save tax?',
     answer:
-      'You sign up with your mobile number, complete KYC and a short risk profile, sign the advisory agreement digitally, and then choose a plan.',
+      'Tax harvesting involves selling investments to realise eligible capital losses or gains strategically, which may help reduce your tax liability, subject to applicable tax rules. We help you understand how tax harvesting works and whether it may be suitable for your portfolio.',
   },
   {
-    question: 'Are returns guaranteed?',
+    question: 'How does automated rebalancing work?',
     answer:
-      'No. Investments in securities markets are subject to market risks, and no adviser can guarantee returns. Any figures we show are illustrative.',
+      'Market movements cause your portfolio\'s target asset allocation to drift over time. Our system continuously monitors your tracking error. When a specific asset drifts past its optimal boundary, our algorithms automatically execute buy and sell orders to realign your portfolio back to its target risk profile—without you lifting a finger.',
   },
   {
-    question: 'How do I raise a complaint?',
+    question: 'Is portfolio health check-up a free service?',
     answer:
-      'Write to our Compliance Officer using the details in the footer. If you are not satisfied with our response, you can lodge a complaint on SEBI SCORES or the Online Dispute Resolution portal.',
+      'Yes. Wisbees provides Portfolio Health Checkup Report at no cost. The objective is to help investors gain a deeper understanding of their portfolio’s risk profile and investment positioning.',
+  },
+  {
+    question: 'Why should I review my portfolio regularly?',
+    answer:
+      'Market conditions, sector weights, and individual investments change over time. A portfolio that was well-balanced a year ago may now carry higher risk or concentration. Regular portfolio reviews help investors stay aligned with their financial goals and risk tolerance.',
   },
 ].map((faq, i) => ({ question: faq.question, answer: paragraphs(faq.answer), order: i + 1 }))
 

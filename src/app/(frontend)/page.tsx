@@ -32,7 +32,9 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   return (
     <>
       {on(home.hero) && <Hero data={home.hero} />}
-      {on(home.highlights) && <Highlights data={home.highlights} />}
+      {on(home.highlights) && (
+        <Highlights data={home.highlights} variant={resolveVariant('highlights', home.highlights.variant, params)} />
+      )}
       {on(home.calculator) && <SipCalculator data={home.calculator} />}
       {home.illustration && on(home.illustration) && <IllustrationBand data={home.illustration} />}
       {on(home.portfolios) && <ModelPortfolios data={home.portfolios} portfolios={portfolios} />}
@@ -50,8 +52,8 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       {variantPreviewEnabled() && (
         <Suspense>
           <VariantSwitcher
-            sections={['gallery']}
-            live={{ gallery: home.gallery.variant }}
+            sections={['highlights', 'gallery']}
+            live={{ highlights: home.highlights.variant, gallery: home.gallery.variant }}
           />
         </Suspense>
       )}

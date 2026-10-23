@@ -789,6 +789,10 @@ export interface HomePage {
   };
   highlights: {
     enabled?: boolean | null;
+    /**
+     * Which design of this section the website shows. Developers can preview the others locally.
+     */
+    variant: 'checklist' | 'solar' | 'atom';
     title: string;
     subtitle?: string | null;
     cta: {
@@ -798,10 +802,24 @@ export interface HomePage {
        */
       href: string;
     };
+    /**
+     * In the Solar system and Atom layouts each point becomes an orbiting label; Atom draws one ring per point.
+     */
     items?:
       | {
           title: string;
+          /**
+           * Shown under the title, and in the hover card in the Atom layout.
+           */
           description: string;
+          /**
+           * A few words for the orbiting label (Solar system and Atom). Falls back to the title.
+           */
+          shortLabel?: string | null;
+          /**
+           * Optional picture that orbits with the label (Solar system) or shows in the hover card (Atom).
+           */
+          image?: (number | null) | Media;
           id?: string | null;
         }[]
       | null;
@@ -1753,6 +1771,7 @@ export interface HomePageSelect<T extends boolean = true> {
     | T
     | {
         enabled?: T;
+        variant?: T;
         title?: T;
         subtitle?: T;
         cta?:
@@ -1766,6 +1785,8 @@ export interface HomePageSelect<T extends boolean = true> {
           | {
               title?: T;
               description?: T;
+              shortLabel?: T;
+              image?: T;
               id?: T;
             };
       };

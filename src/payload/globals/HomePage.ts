@@ -37,7 +37,16 @@ export const HomePage: GlobalConfig = contentGlobal({
             fields: [linkGroup('secondaryCta', 'Outline button'), linkGroup('primaryCta', 'Filled button')],
           },
         ]),
-        sectionTab('highlights', 'Highlights', [
+        sectionTab('highlights', 'Why WisBees', [
+          {
+            name: 'variant',
+            label: 'Layout',
+            type: 'select',
+            required: true,
+            defaultValue: 'checklist',
+            options: variantOptions('highlights'),
+            admin: { description: 'Which design of this section the website shows. Developers can preview the others locally.' },
+          },
           { name: 'title', type: 'text', required: true },
           { name: 'subtitle', type: 'textarea' },
           linkGroup('cta', 'Button'),
@@ -45,9 +54,12 @@ export const HomePage: GlobalConfig = contentGlobal({
             name: 'items',
             type: 'array',
             maxRows: 8,
+            admin: { description: 'In the Solar system and Atom layouts each point becomes an orbiting label; Atom draws one ring per point.' },
             fields: [
               { name: 'title', type: 'text', required: true },
-              { name: 'description', type: 'textarea', required: true },
+              { name: 'description', type: 'textarea', required: true, admin: { description: 'Shown under the title, and in the hover card in the Atom layout.' } },
+              { name: 'shortLabel', type: 'text', admin: { description: 'A few words for the orbiting label (Solar system and Atom). Falls back to the title.' } },
+              { name: 'image', type: 'upload', relationTo: 'media', admin: { description: 'Optional picture that orbits with the label (Solar system) or shows in the hover card (Atom).' } },
             ],
           },
         ]),

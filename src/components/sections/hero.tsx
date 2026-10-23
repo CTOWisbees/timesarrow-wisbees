@@ -27,7 +27,7 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
 
         <CmsImage
           media={data.image}
-          fallbackSrc="/brand/hero.webp"
+          fallbackSrc="/brand/hero-logos.webp"
           fallbackAlt="A calm, confident investor beside a confused one, both at their laptops"
           width={1414}
           height={565}
