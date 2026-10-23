@@ -133,7 +133,7 @@ export const HomePage: GlobalConfig = contentGlobal({
             required: true,
             defaultValue: 'immersive',
             options: variantOptions('gallery'),
-            admin: { description: 'Which design of this section the website shows. Developers can preview the others locally.' },
+            admin: { hidden: true, description: 'No longer used: the gallery always uses the collage layout.' },
           },
           { name: 'title', type: 'text', required: true },
           linkGroup('cta', 'See all link'),

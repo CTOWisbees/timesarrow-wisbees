@@ -74,11 +74,11 @@ export function GalleryCollage({ data, items, intervalMs }: { data: HomePage['ga
             fill
             sizes="100vw"
             priority={i === 0}
-            className={cn('scale-110 object-cover blur-[10px] transition-opacity duration-700 motion-reduce:transition-none', i === index ? 'opacity-100' : 'opacity-0')}
+            className={cn('scale-105 object-cover blur-[4px] transition-opacity duration-700 motion-reduce:transition-none', i === index ? 'opacity-100' : 'opacity-0')}
           />
         ))}
-        <div className="absolute inset-0 bg-[rgb(15_107_76/0.5)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[rgb(6_20_14/0.18)] via-transparent to-[rgb(6_20_14/0.28)]" />
+        <div className="absolute inset-0 bg-[rgb(15_107_76/0.28)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[rgb(6_20_14/0.3)] via-transparent to-[rgb(6_20_14/0.3)]" />
       </div>
 
       <div className="container-page flex min-h-0 flex-1 flex-col py-8 sm:py-10 lg:py-12">
