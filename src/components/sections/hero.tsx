@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 import { CmsImage } from '@/components/shared/cms-image'
@@ -27,28 +28,38 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
 
         <CmsImage
           media={data.image}
-          fallbackSrc="/brand/hero-logos.webp"
+          fallbackSrc="/brand/hero-sketch.webp"
           fallbackAlt="A calm, confident investor beside a confused one, both at their laptops"
-          width={1414}
-          height={565}
+          width={1596}
+          height={891}
           priority
           sizes="(min-width: 1024px) 864px, 100vw"
-          className="mt-6 h-auto w-full max-w-[min(54rem,calc((100svh-var(--header-h)-21rem)*2.5))] sm:mt-8"
+          className="mt-6 h-auto w-full max-w-[min(54rem,calc((100svh-var(--header-h)-21rem)*1.79))] sm:mt-8"
         />
 
-        {/* Stacked full-width on phones, side by side from the sm breakpoint. */}
-        <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5 sm:mt-8 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
+        {/* Stacked full-width on phones, side by side from the sm breakpoint, with room between them. */}
+        <div className="mt-8 flex w-full max-w-xs flex-col gap-3 sm:mt-10 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center sm:gap-6">
           {data.secondaryCta?.href && (
-            <Button asChild variant="brandOutline" size="cta" className="h-11 w-full px-6 sm:h-12 sm:w-auto sm:px-7">
+            <Button
+              asChild
+              variant="brandOutline"
+              size="cta"
+              className="border-primary/40 hover:border-primary h-12 w-full rounded-xl px-7 font-semibold shadow-[0_1px_2px_rgb(16_34_27/0.06)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(16_34_27/0.1)] sm:h-[3.25rem] sm:w-auto sm:min-w-[14rem]"
+            >
               <Link href={data.secondaryCta.href} {...linkProps(data.secondaryCta.href)}>
                 {data.secondaryCta.label}
               </Link>
             </Button>
           )}
           {data.primaryCta?.href && (
-            <Button asChild size="cta" className="h-11 w-full px-6 sm:h-12 sm:w-auto sm:px-7">
+            <Button
+              asChild
+              size="cta"
+              className="group h-12 w-full rounded-xl px-7 font-semibold shadow-[0_6px_18px_rgb(15_107_76/0.3)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgb(15_107_76/0.4)] sm:h-[3.25rem] sm:w-auto sm:min-w-[14rem]"
+            >
               <Link href={data.primaryCta.href} {...linkProps(data.primaryCta.href)}>
                 {data.primaryCta.label}
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
             </Button>
           )}
