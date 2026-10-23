@@ -317,9 +317,13 @@ export interface Booking {
   mobile: string;
   email: string;
   /**
-   * Day and time picked by the visitor (optional step 2).
+   * Day and time picked by the visitor, as shown to them (Indian time).
    */
   preferredSlot?: string | null;
+  /**
+   * The same slot as an exact date and time, for sorting and calendars.
+   */
+  preferredAt?: string | null;
   status?: ('new' | 'contacted' | 'closed') | null;
   internalNotes?: string | null;
   /**
@@ -644,6 +648,7 @@ export interface BookingsSelect<T extends boolean = true> {
   mobile?: T;
   email?: T;
   preferredSlot?: T;
+  preferredAt?: T;
   status?: T;
   internalNotes?: T;
   consentText?: T;
@@ -876,7 +881,7 @@ export interface HomePage {
   bookCall: {
     enabled?: boolean | null;
     /**
-     * How the form is laid out. Developers can preview the others locally.
+     * No longer used: the form always shows calendar tiles.
      */
     variant: 'two-step' | 'one-step' | 'slot-first' | 'ms-bookings';
     /**

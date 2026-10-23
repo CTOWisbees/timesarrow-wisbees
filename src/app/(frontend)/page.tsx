@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 
 import { VariantSwitcher } from '@/components/dev/variant-switcher'
+import { CopilotFab } from '@/components/layout/copilot-fab'
 import { BookCall } from '@/components/sections/book-call/book-call'
 import { Faq } from '@/components/sections/faq'
 import { Gallery } from '@/components/sections/gallery'
@@ -42,16 +43,15 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       {on(home.bookCall) && (
         <BookCall
           data={home.bookCall}
-          variant={resolveVariant('bookCall', home.bookCall.variant, params)}
           icons={resolveToggles('bookCall', home.bookCall.fieldIcons, params)}
         />
       )}
+      <CopilotFab raised={variantPreviewEnabled()} />
       {variantPreviewEnabled() && (
         <Suspense>
           <VariantSwitcher
-            sections={['gallery', 'bookCall']}
-            live={{ gallery: home.gallery.variant, bookCall: home.bookCall.variant }}
-            toggles={{ bookCall: home.bookCall.fieldIcons ?? [] }}
+            sections={['gallery']}
+            live={{ gallery: home.gallery.variant }}
           />
         </Suspense>
       )}

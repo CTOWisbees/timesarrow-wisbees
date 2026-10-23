@@ -15,6 +15,7 @@ import * as migration_20261011_094405_portfolio_scan_globals from './20261011_09
 import * as migration_20261011_100000_scan_data from './20261011_100000_scan_data';
 import * as migration_20261017_173657_gallery_collage from './20261017_173657_gallery_collage';
 import * as migration_20261017_191214_storage_object_key from './20261017_191214_storage_object_key';
+import * as migration_20261023_062654_booking_preferred_at from './20261023_062654_booking_preferred_at';
 
 export const migrations = [
   {
@@ -100,6 +101,11 @@ export const migrations = [
   {
     up: migration_20261017_191214_storage_object_key.up,
     down: migration_20261017_191214_storage_object_key.down,
-    name: '20261017_191214_storage_object_key'
+    name: '20261017_191214_storage_object_key',
+  },
+  {
+    up: migration_20261023_062654_booking_preferred_at.up,
+    down: migration_20261023_062654_booking_preferred_at.down,
+    name: '20261023_062654_booking_preferred_at'
   },
 ];

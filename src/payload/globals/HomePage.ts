@@ -145,7 +145,7 @@ export const HomePage: GlobalConfig = contentGlobal({
             required: true,
             defaultValue: 'two-step',
             options: variantOptions('bookCall'),
-            admin: { description: 'How the form is laid out. Developers can preview the others locally.' },
+            admin: { hidden: true, description: 'No longer used: the form always shows calendar tiles.' },
           },
           {
             name: 'fieldIcons',

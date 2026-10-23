@@ -12,7 +12,7 @@ export const Bookings: CollectionConfig = {
   labels: { singular: 'Call booking', plural: 'Call bookings' },
   admin: {
     useAsTitle: 'email',
-    defaultColumns: ['fullName', 'mobile', 'email', 'preferredSlot', 'status', 'createdAt'],
+    defaultColumns: ['fullName', 'mobile', 'email', 'preferredAt', 'status', 'createdAt'],
     group: 'Leads',
     description: 'Requests from the "Talk to an expert" form on the home page.',
   },
@@ -32,7 +32,13 @@ export const Bookings: CollectionConfig = {
         { name: 'email', type: 'email', required: true },
       ],
     },
-    { name: 'preferredSlot', type: 'text', admin: { description: 'Day and time picked by the visitor (optional step 2).' } },
+    { name: 'preferredSlot', type: 'text', admin: { description: 'Day and time picked by the visitor, as shown to them (Indian time).' } },
+    {
+      name: 'preferredAt',
+      type: 'date',
+      admin: { description: 'The same slot as an exact date and time, for sorting and calendars.', date: { pickerAppearance: 'dayAndTime' } },
+      index: true,
+    },
     {
       name: 'status',
       type: 'select',

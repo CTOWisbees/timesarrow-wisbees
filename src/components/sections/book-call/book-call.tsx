@@ -1,29 +1,24 @@
 import { CmsImage } from '@/components/shared/cms-image'
 import type { HomePage } from '@/payload-types'
 
-import type { BookCallIcon, VariantOf } from '@/lib/section-variants'
+import type { BookCallIcon } from '@/lib/section-variants'
 
-import { BookCallForm } from './book-call-form'
-import { BookCallMsBookings } from './book-call-ms-bookings'
-import { BookCallOneStep } from './book-call-one-step'
+import { BookCallCalendar } from './book-call-calendar'
 
 /**
  * Two balanced columns: the pitch (heading, description, illustration filling the rest
- * of the height) and the booking form, in the layout chosen in the CMS or a dev
- * preview. See `src/lib/section-variants.ts`.
+ * of the height) and the calendar-tile booking form (the only layout).
  */
 export function BookCall({
   data,
-  variant,
   icons,
 }: {
   data: HomePage['bookCall']
-  variant: VariantOf<'bookCall'>
   icons: BookCallIcon[]
 }) {
   const formProps = {
     icons,
-    showSlotPicker: Boolean(data.showSlotPicker),
+    showSlotPicker: true,
     timeSlots: data.timeSlots?.map((t) => t.label) ?? [],
     consentText: data.consentText,
     submitLabel: data.submitLabel || 'Book a call',
@@ -54,16 +49,7 @@ export function BookCall({
             </div>
           </div>
           <div className="lg:py-2">
-            {variant === 'two-step' && <BookCallForm {...formProps} />}
-            {(variant === 'one-step' || variant === 'slot-first') && <BookCallOneStep layout={variant} {...formProps} />}
-            {variant === 'ms-bookings' && (
-              <BookCallMsBookings
-                url={data.msBookingsUrl}
-                display={data.msBookingsDisplay}
-                linkLabel={data.msBookingsLinkLabel}
-                note={data.msBookingsNote}
-              />
-            )}
+            <BookCallCalendar {...formProps} />
           </div>
         </div>
       </div>

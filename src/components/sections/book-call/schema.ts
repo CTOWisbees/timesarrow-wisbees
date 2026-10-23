@@ -27,18 +27,13 @@ export const slotSchema = z.object({
 })
 
 /**
- * One-step booking: contact details plus an optional preferred day and time in the
- * same submission. A day without a time (or the reverse) is rejected.
+ * Calendar booking: contact details plus the chosen day (YYYY-MM-DD, Indian date) and time
+ * label. Whether that slot is still bookable is checked on the server against the CMS times.
  */
-export const bookingSchema = contactSchema
-  .extend({
-    preferredDay: z.string().trim().max(40).optional(),
-    preferredTime: z.string().trim().max(40).optional(),
-  })
-  .refine((v) => Boolean(v.preferredDay) === Boolean(v.preferredTime), {
-    message: 'Pick both a day and a time',
-    path: ['preferredTime'],
-  })
+export const bookingSchema = contactSchema.extend({
+  preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a day'),
+  preferredTime: z.string().trim().min(1, 'Pick a time').max(20),
+})
 
 export type ContactInput = z.input<typeof contactSchema>
 export type BookingInput = z.input<typeof bookingSchema>

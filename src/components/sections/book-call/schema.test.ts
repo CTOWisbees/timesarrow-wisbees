@@ -44,14 +44,15 @@ describe('slotSchema', () => {
   })
 })
 
-describe('bookingSchema (one step)', () => {
-  it('accepts details with or without a slot', () => {
-    expect(bookingSchema.safeParse(valid).success).toBe(true)
-    expect(bookingSchema.safeParse({ ...valid, preferredDay: 'Thu 12 Oct', preferredTime: '10:00 AM' }).success).toBe(true)
+describe('bookingSchema (calendar)', () => {
+  it('needs both a day and a time', () => {
+    expect(bookingSchema.safeParse({ ...valid, preferredDate: '2026-10-24', preferredTime: '10:00 AM' }).success).toBe(true)
+    expect(bookingSchema.safeParse(valid).success).toBe(false)
+    expect(bookingSchema.safeParse({ ...valid, preferredDate: '2026-10-24' }).success).toBe(false)
+    expect(bookingSchema.safeParse({ ...valid, preferredTime: '10:00 AM' }).success).toBe(false)
   })
 
-  it('rejects a day without a time, and a time without a day', () => {
-    expect(bookingSchema.safeParse({ ...valid, preferredDay: 'Thu 12 Oct' }).success).toBe(false)
-    expect(bookingSchema.safeParse({ ...valid, preferredTime: '10:00 AM' }).success).toBe(false)
+  it('rejects a malformed date', () => {
+    expect(bookingSchema.safeParse({ ...valid, preferredDate: 'Sat 24 Oct', preferredTime: '10:00 AM' }).success).toBe(false)
   })
 })

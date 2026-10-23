@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'crypto'
 import { headers } from 'next/headers'
 import type { z } from 'zod'
 
+import { isSlotAvailable, slotInstant } from '@/lib/booking-slots'
 import { getPayloadClient } from '@/lib/payload'
 
 import {
@@ -44,8 +45,9 @@ export async function submitContact(input: ContactInput): Promise<ContactResult>
 }
 
 /**
- * One-step booking (layouts "one step" and "pick a time first"): contact details and,
- * optionally, a preferred day and time, saved together.
+ * Calendar booking: contact details and the chosen day and time, saved together. The slot is
+ * re-checked on the server against the CMS times and the current Indian time, so a stale or
+ * tampered request cannot book a time that has passed.
  */
 export async function submitBooking(input: BookingInput): Promise<BookingResult> {
   const result = await createBooking(bookingSchema, input, false)
@@ -66,8 +68,9 @@ async function createBooking(
     return { ok: false, error: 'Please check the highlighted fields.', fieldErrors: fieldErrorsFrom(parsed.error) }
   }
   const data = parsed.data
-  const { preferredDay, preferredTime } = data as { preferredDay?: string; preferredTime?: string }
-  const slot = preferredDay && preferredTime ? `${preferredDay}, ${preferredTime}` : undefined
+  const { preferredDay, preferredDate, preferredTime } = data as { preferredDay?: string; preferredDate?: string; preferredTime?: string }
+  let slot = preferredDay && preferredTime ? `${preferredDay}, ${preferredTime}` : undefined
+  let slotAt: Date | null = null
 
   try {
     const payload = await getPayloadClient()
@@ -87,6 +90,15 @@ async function createBooking(
     }
 
     const home = await payload.findGlobal({ slug: 'home-page', draft: false, depth: 0 })
+    if (preferredDate && preferredTime) {
+      const times = home.bookCall.timeSlots?.map((s) => s.label) ?? []
+      slotAt = slotInstant(preferredDate, preferredTime)
+      if (!slotAt || !times.includes(preferredTime) || !isSlotAvailable(preferredDate, preferredTime, new Date())) {
+        return { ok: false, error: 'That time is no longer available. Please pick another.', fieldErrors: { preferredTime: 'Pick another time' } }
+      }
+      const day = new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).format(slotAt).replace(',', '')
+      slot = `${day}, ${preferredTime} IST`
+    }
     const token = randomBytes(32).toString('hex')
 
     await payload.create({
@@ -101,6 +113,7 @@ async function createBooking(
         source: 'home-page',
         ipHash,
         ...(slot ? { preferredSlot: slot } : {}),
+        ...(slotAt ? { preferredAt: slotAt.toISOString() } : {}),
         ...(withSlotToken ? { slotTokenHash: sha256(token) } : {}),
         status: 'new',
       },
