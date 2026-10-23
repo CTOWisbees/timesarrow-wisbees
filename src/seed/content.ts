@@ -348,7 +348,7 @@ export const riskProfile = {
 export const homePage = {
   hero: {
     enabled: true,
-    headline: 'Invest Smarter.\nAutomate Better.',
+    headline: 'Invest Smarter. Automate Better.',
     subheadline: 'Smart asset allocation, automatically executed across mutual funds, Commodity ETFs and SIFs.',
     secondaryCta: { label: 'Explore our offerings', href: '#portfolios' },
     primaryCta: { label: 'Talk to an expert', href: '#book-call' },
