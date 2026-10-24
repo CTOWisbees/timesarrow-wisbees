@@ -7,7 +7,7 @@ export function IllustrationBand({ data }: { data: NonNullable<HomePage['illustr
     <div className="bg-[#f9f6ed]">
       <CmsImage
         media={data.image}
-        fallbackSrc="/brand/city-wisbees.webp"
+        fallbackSrc="/brand/city-wisbees-v2.webp"
         fallbackAlt="Illustrated WisBees village: the investment advisory office, WisBees Buzz for IPOs and NFOs, the WBC business carnival and WisBees.com for research, news and insights"
         width={2000}
         height={1049}
