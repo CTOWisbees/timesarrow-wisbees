@@ -30,8 +30,8 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
           media={data.image}
           fallbackSrc="/brand/hero-sketch.webp"
           fallbackAlt="A calm, confident investor beside a confused one, both at their laptops"
-          width={1596}
-          height={891}
+          width={1600}
+          height={903}
           priority
           sizes="(min-width: 1024px) 864px, 100vw"
           className="mt-6 h-auto w-full max-w-[min(54rem,calc((100svh-var(--header-h)-21rem)*1.79))] sm:mt-8"
