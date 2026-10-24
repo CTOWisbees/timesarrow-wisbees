@@ -54,3 +54,30 @@ export function swp({ corpus, monthly, annualReturn, years }: { corpus: number; 
   const exhausted = balance <= 1e-9
   return { corpus, withdrawn, value: Math.max(balance, 0), exhausted, monthsPaid, yearly }
 }
+
+export type LoanYear = { year: number; principal: number; interest: number; balance: number }
+
+/** EMI = P × r × (1+r)^n / ((1+r)^n − 1), r = annual/12. Zero interest is split evenly. */
+export function emi({ principal, annualRate, years }: { principal: number; annualRate: number; years: number }) {
+  const n = Math.round(years * 12)
+  const r = pct(annualRate) / 12
+  const payment = r === 0 ? principal / n : (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+  const yearly: LoanYear[] = []
+  let balance = principal
+  let yearPrincipal = 0
+  let yearInterest = 0
+  for (let m = 1; m <= n; m++) {
+    const interest = balance * r
+    const paidPrincipal = payment - interest
+    balance = Math.max(balance - paidPrincipal, 0)
+    yearPrincipal += paidPrincipal
+    yearInterest += interest
+    if (m % 12 === 0 || m === n) {
+      yearly.push({ year: Math.ceil(m / 12), principal: yearPrincipal, interest: yearInterest, balance: m === n ? 0 : balance })
+      yearPrincipal = 0
+      yearInterest = 0
+    }
+  }
+  const total = payment * n
+  return { emi: payment, total, interest: total - principal, principal, months: n, yearly }
+}

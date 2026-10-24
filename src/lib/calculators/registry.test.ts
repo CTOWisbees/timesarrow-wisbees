@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { CALCULATORS, defaultValues, getCalculator } from './registry'
 
 describe('calculator registry', () => {
-  it('offers only SIP, lumpsum and SWP', () => {
-    expect(CALCULATORS.map((c) => c.slug)).toEqual(['sip-calculator', 'lumpsum-calculator', 'swp-calculator'])
+  it('offers only SIP, lumpsum, SWP and EMI', () => {
+    expect(CALCULATORS.map((c) => c.slug)).toEqual(['sip-calculator', 'lumpsum-calculator', 'swp-calculator', 'emi-calculator'])
   })
 
   it('SIP defaults give ₹23,23,390 on ₹12,00,000 invested', () => {
@@ -25,6 +25,13 @@ describe('calculator registry', () => {
     const r = def.compute({ ...defaultValues(def), inflation: 6 })
     const today = Math.floor(310584.8 / Math.pow(1.06, 10))
     expect(r.stats[3].value).toBe(`₹${today.toLocaleString('en-IN')}`)
+  })
+
+  it('EMI defaults give ₹8,678 a month on ₹10L at 8.5% for 20 years', () => {
+    const def = getCalculator('emi-calculator')!
+    const r = def.compute(defaultValues(def))
+    expect(r.stats[0].value).toBe('₹8,678')
+    expect(r.stats[3].value).toBe('₹20,82,776')
   })
 
   it('every calculator works out its numbers at the extremes', () => {

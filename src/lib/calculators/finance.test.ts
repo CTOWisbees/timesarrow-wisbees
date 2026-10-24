@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { lumpsum, sip, swp } from './finance'
+import { emi, lumpsum, sip, swp } from './finance'
 
 describe('sip', () => {
   it('matches FV = P × ((1+i)^n − 1)/i × (1+i)', () => {
@@ -80,5 +80,32 @@ describe('closed forms across many inputs', () => {
           expect(r.value).toBe(0)
         }
       }
+  })
+})
+
+describe('emi', () => {
+  it('gives the standard EMI for ₹10L at 8.5% over 20 years', () => {
+    const r = emi({ principal: 1_000_000, annualRate: 8.5, years: 20 })
+    expect(r.emi).toBeCloseTo(8678.23, 2)
+    expect(r.total).toBeCloseTo(r.emi * 240, 6)
+    expect(r.yearly.at(-1)!.balance).toBe(0)
+    expect(r.yearly.reduce((s, y) => s + y.principal, 0)).toBeCloseTo(1_000_000, 4)
+    expect(r.yearly.reduce((s, y) => s + y.interest, 0)).toBeCloseTo(r.interest, 4)
+  })
+
+  it('equals P·r·(1+r)^n/((1+r)^n − 1) across many inputs and clears the loan', () => {
+    for (const rate of [1, 7.25, 8.5, 12, 30])
+      for (const years of [1, 5, 15, 30]) {
+        const r = rate / 1200
+        const n = years * 12
+        const expected = (2_500_000 * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
+        const res = emi({ principal: 2_500_000, annualRate: rate, years })
+        expect(res.emi / expected).toBeCloseTo(1, 12)
+        expect(res.yearly.reduce((s, y) => s + y.principal, 0) / 2_500_000).toBeCloseTo(1, 9)
+      }
+  })
+
+  it('handles zero interest', () => {
+    expect(emi({ principal: 120000, annualRate: 0, years: 1 }).emi).toBe(10000)
   })
 })

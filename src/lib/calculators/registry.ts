@@ -1,10 +1,12 @@
 import { formatInr } from '@/lib/format-inr'
 
-import { lumpsum, sip, swp } from './finance'
+import { emi, lumpsum, sip, swp } from './finance'
 import type { CalculatorDef, NumberField, ToolResult, Values } from './types'
 
 /** Projected and maturity figures are truncated, never rounded up. */
 const proj = (n: number) => formatInr(Math.floor(n + 1e-6))
+/** Obligations (EMI, interest paid) are rounded to the nearest rupee. */
+const due = (n: number) => formatInr(n)
 const yr = (n: number) => `Year ${n}`
 
 const num = (id: string, label: string, o: Omit<NumberField, 'kind' | 'id' | 'label'>): NumberField => ({ kind: 'number', id, label, ...o })
@@ -178,7 +180,67 @@ const swpDef: CalculatorDef = {
   },
 }
 
-export const CALCULATORS: CalculatorDef[] = [sipDef, lumpsumDef, swpDef]
+// ───────────────────────────── EMI ─────────────────────────────
+
+const emiDef: CalculatorDef = {
+  slug: 'emi-calculator',
+  name: 'EMI Calculator',
+  summary: 'Work out the monthly EMI, total interest and repayment schedule for a loan.',
+  fields: [
+    num('amount', 'Loan amount', { min: 10_000, max: 50_000_000, step: 10_000, default: 1_000_000, format: 'inr' }),
+    num('rate', 'Rate of interest (p.a.)', { min: 1, max: 30, step: 0.05, default: 8.5, format: 'percent' }),
+    num('years', 'Loan tenure', { min: 1, max: 30, step: 1, default: 20, format: 'years' }),
+  ],
+  compute(v) {
+    const r = emi({ principal: n(v, 'amount'), annualRate: n(v, 'rate'), years: n(v, 'years') })
+    return {
+      stats: [
+        { label: 'Monthly EMI', value: due(r.emi), tone: 'primary' },
+        { label: 'Principal amount', value: due(r.principal) },
+        { label: 'Total interest', value: due(r.interest) },
+        { label: 'Total payment', value: due(r.total) },
+      ],
+      donut: [
+        { label: 'Principal amount', value: r.principal, display: due(r.principal), tone: 'soft' },
+        { label: 'Total interest', value: r.interest, display: due(r.interest), tone: 'amber' },
+      ],
+      series: {
+        title: 'Principal and interest paid each year',
+        aLabel: 'Principal paid',
+        bLabel: 'Interest paid',
+        data: r.yearly.map((y) => ({ label: yr(y.year), a: y.principal, b: y.interest })),
+      },
+      table: {
+        title: 'Repayment schedule',
+        columns: ['Year', 'Principal paid', 'Interest paid', 'Balance'],
+        rows: r.yearly.map((y) => [String(y.year), due(y.principal), due(y.interest), due(y.balance)]),
+      },
+      notes: ['Interest is charged on the outstanding balance each month, so early EMIs are mostly interest and later ones mostly principal.'],
+    }
+  },
+  method: {
+    intro: 'Interest is charged monthly on the outstanding balance (reducing balance method). Every EMI is the same; its interest part falls and its principal part grows each month.',
+    formulas: [
+      'EMI = P × r × (1 + r)^n ÷ [ (1 + r)^n − 1 ]',
+      'P = loan amount, r = annual rate ÷ 12 ÷ 100, n = tenure in months',
+      'Total interest = EMI × n − P',
+    ],
+  },
+  worked(v) {
+    const P = n(v, 'amount')
+    const r = n(v, 'rate') / 12 / 100
+    const months = n(v, 'years') * 12
+    const res = emi({ principal: P, annualRate: n(v, 'rate'), years: n(v, 'years') })
+    return [
+      `r = ${dec(n(v, 'rate'))} ÷ 12 ÷ 100 = ${dec(r)}, n = ${n(v, 'years')} × 12 = ${months} months`,
+      `EMI = ${formatInr(P)} × ${dec(r)} × (1 + ${dec(r)})^${months} ÷ [ (1 + ${dec(r)})^${months} − 1 ] = ${due(res.emi)}`,
+      `Total payment = ${due(res.emi)} × ${months} = ${due(res.total)}`,
+      `Total interest = ${due(res.total)} − ${formatInr(P)} = ${due(res.interest)}`,
+    ]
+  },
+}
+
+export const CALCULATORS: CalculatorDef[] = [sipDef, lumpsumDef, swpDef, emiDef]
 
 export const getCalculator = (slug: string) => CALCULATORS.find((c) => c.slug === slug)
 
