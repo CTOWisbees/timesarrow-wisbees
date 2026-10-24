@@ -1,4 +1,5 @@
-import { CmsImage } from '@/components/shared/cms-image'
+import Image from 'next/image'
+
 import type { HomePage } from '@/payload-types'
 
 import type { BookCallIcon } from '@/lib/section-variants'
@@ -38,10 +39,9 @@ export function BookCall({
             {data.description && <p className="text-ink-soft mt-4 max-w-md text-lg leading-relaxed">{data.description}</p>}
             {/* Fills the rest of the column so both columns end together. */}
             <div className="bg-card relative mt-8 hidden min-h-64 flex-1 overflow-hidden rounded-2xl sm:block">
-              <CmsImage
-                media={data.illustration}
-                fallbackSrc="/brand/book-call.webp"
-                fallbackAlt="An adviser explaining a plan to a client over tea"
+              <Image
+                src="/brand/book-call-v2.webp"
+                alt="An adviser explaining a plan to a client over tea"
                 fill
                 sizes="(min-width: 1024px) 480px, 90vw"
                 className="object-contain p-4"
