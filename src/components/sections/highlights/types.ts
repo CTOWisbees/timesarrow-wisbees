@@ -8,3 +8,6 @@ export const itemImage = (item: HighlightItem): Media | null => (typeof item.ima
 
 /** The short orbit label, falling back to the full title. */
 export const itemLabel = (item: HighlightItem) => item.shortLabel?.trim() || item.title
+
+/** The first sentence of a description: the extra line shown under an orbiting label. */
+export const firstSentence = (text: string) => text.split(/(?<=[.!?])\s/)[0]

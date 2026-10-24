@@ -50,22 +50,25 @@ export function useOrbitLoop(rootRef: RefObject<HTMLElement | null>, tick: (seco
   }, [rootRef])
 }
 
-/** The stage's size in pixels (kept in a ref, for the animation loop) and whether it is small enough to need the compact labels. */
+/** The stage's size in pixels (a ref for the animation loop, and state `dims` for drawing) and whether it is small enough to need the compact labels. */
 export function useStageSize(stage: RefObject<HTMLElement | null>) {
   const size = useRef({ w: 0, h: 0 })
   const [compact, setCompact] = useState(false)
+  const [dims, setDims] = useState({ w: 0, h: 0 })
 
   useEffect(() => {
     const el = stage.current
     if (!el) return
-    size.current = { w: el.clientWidth, h: el.clientHeight }
-    const observer = new ResizeObserver(() => {
+    const measure = () => {
       size.current = { w: el.clientWidth, h: el.clientHeight }
+      setDims(size.current)
       setCompact(el.clientWidth < COMPACT_BELOW)
-    })
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
   }, [stage])
 
-  return { size, compact }
+  return { size, compact, dims }
 }

@@ -49,7 +49,7 @@ export function NumberFieldInput({ field, value, onChange }: { field: NumberFiel
           </label>
           {field.hint && <p className={hintClass}>{field.hint}</p>}
         </div>
-        <div className="border-input bg-card focus-within:border-ring focus-within:ring-ring/40 flex h-11 w-40 shrink-0 items-center gap-1 rounded-lg border px-3 transition-colors focus-within:ring-3 sm:w-44">
+        <div className="border-input bg-card focus-within:border-ring focus-within:ring-ring/40 flex h-11 w-36 shrink-0 items-center gap-1 rounded-lg border px-3 transition-colors focus-within:ring-3">
           {prefix && <span className="text-muted-foreground text-sm">{prefix}</span>}
           <input
             id={id}

@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { CalculatorView } from '@/components/tools/calculator-view'
-import { panel } from '@/components/tools/results'
-import { ToolsSidebar } from '@/components/tools/sidebar'
+import { CalculatorSwitcher } from '@/components/tools/switcher'
 import { CALCULATORS, getCalculator } from '@/lib/calculators/registry'
 
 type Params = Promise<{ slug: string }>
@@ -23,7 +22,7 @@ export default async function ToolPage({ params }: { params: Params }) {
 
   return (
     <>
-      <div className="bg-card border-b">
+      <div className="bg-mint border-b">
         <div className="container-page py-8 md:py-12">
           <nav aria-label="Breadcrumb" className="text-muted-foreground text-sm">
             <Link href="/tools" className="hover:text-primary">
@@ -34,29 +33,12 @@ export default async function ToolPage({ params }: { params: Params }) {
           </nav>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">{def.name}</h1>
           <p className="text-ink-soft mt-3 max-w-2xl text-lg">{def.summary}</p>
+          <CalculatorSwitcher activeSlug={def.slug} />
         </div>
       </div>
 
-      <div className="container-page grid gap-8 py-8 md:py-12 lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-10">
-        <div className="flex min-w-0 flex-col gap-6">
-          <CalculatorView key={def.slug} slug={def.slug} />
-
-          <section className={panel} aria-labelledby="method-title">
-            <h2 id="method-title" className="text-xl font-semibold">
-              How this is calculated
-            </h2>
-            <p className="text-ink-soft mt-3 leading-relaxed">{def.method.intro}</p>
-            <ul className="mt-4 flex flex-col gap-2.5">
-              {def.method.formulas.map((f) => (
-                <li key={f} className="bg-mist text-ink rounded-lg border px-4 py-3 font-mono text-[0.85rem] leading-relaxed">
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <p className="text-muted-foreground mt-4 text-sm">Figures are estimates for planning. Actual results depend on the product, its terms and market conditions.</p>
-          </section>
-        </div>
-        <ToolsSidebar activeSlug={def.slug} />
+      <div className="container-page py-8 md:py-12">
+        <CalculatorView key={def.slug} slug={def.slug} />
       </div>
     </>
   )

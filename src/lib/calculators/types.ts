@@ -35,18 +35,15 @@ export type ToolResult = {
   notes?: string[]
 }
 
-export type Category = 'popular' | 'mutual-fund'
-
 export type CalculatorDef = {
   slug: string
   name: string
-  category: Category
   /** One line for cards and the page subtitle. */
   summary: string
   fields: Field[]
   compute: (v: Values) => ToolResult
   /** Plain-language description of how the figures are worked out. */
   method: { intro: string; formulas: string[] }
-  /** Replaces the generic inputs/results (XIRR). */
-  custom?: 'xirr'
+  /** The formula worked out with the visitor's own inputs, one step per line. */
+  worked: (v: Values) => string[]
 }

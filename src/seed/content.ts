@@ -355,7 +355,7 @@ export const homePage = {
   },
   highlights: {
     enabled: true,
-    variant: 'checklist' as const,
+    variant: 'atom' as const,
     title: 'Why WisBees?',
     subtitle: 'Six things you get from WisBees that you will not find in a commission-led advisory.',
     cta: { label: 'See our offerings', href: '#portfolios' },

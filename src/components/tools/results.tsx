@@ -14,28 +14,45 @@ function StatCard({ stat }: { stat: Stat }) {
     <div
       className={cn(
         'rounded-xl border p-4',
-        tone === 'primary' && 'bg-primary border-primary text-white',
+        tone === 'primary' && 'bg-primary border-primary p-5 text-white sm:p-6',
         tone === 'accent' && 'bg-amber-soft border-amber-line',
         tone === 'default' && 'bg-mist',
       )}
     >
       <dt className={cn('text-sm', tone === 'primary' ? 'text-white/80' : 'text-ink-soft')}>{stat.label}</dt>
-      <dd className={cn('font-heading mt-1 text-xl font-semibold tabular-nums @2xl:text-2xl', tone === 'default' && 'text-ink', tone === 'accent' && 'text-amber-ink')}>
+      <dd
+        className={cn(
+          'font-heading mt-1 font-semibold tabular-nums',
+          tone === 'primary' ? 'text-3xl sm:text-4xl' : 'text-xl @2xl:text-2xl',
+          tone === 'default' && 'text-ink',
+          tone === 'accent' && 'text-amber-ink',
+        )}
+      >
         {stat.value}
       </dd>
     </div>
   )
 }
 
+/** The headline figure first and full width, then the supporting figures, the split and the notes. */
 export function Summary({ result }: { result: ToolResult }) {
+  const hero = result.stats.find((s) => s.tone === 'primary')
+  const rest = result.stats.filter((s) => s !== hero)
   return (
-    <div className="@container flex flex-col gap-7">
-      <dl className={cn('grid grid-cols-1 gap-3 @md:grid-cols-2', result.stats.length === 3 && '@xl:grid-cols-3', result.stats.length === 4 && '@3xl:grid-cols-4')}>
-        {result.stats.map((s) => (
-          <StatCard key={s.label} stat={s} />
-        ))}
+    <div className="@container flex flex-col gap-6">
+      <dl className="flex flex-col gap-3">
+        {hero && <StatCard stat={hero} />}
+        <div className={cn('grid grid-cols-1 gap-3 @md:grid-cols-2', rest.length === 3 && '@2xl:grid-cols-3')}>
+          {rest.map((s) => (
+            <StatCard key={s.label} stat={s} />
+          ))}
+        </div>
       </dl>
-      {result.donut && <Donut items={result.donut} />}
+      {result.donut && (
+        <div className="border-t pt-6">
+          <Donut items={result.donut} />
+        </div>
+      )}
       {result.notes && result.notes.length > 0 && (
         <ul className="text-ink-soft border-t pt-5 text-sm leading-relaxed">
           {result.notes.map((note) => (
@@ -85,7 +102,7 @@ export function Breakdown({ result }: { result: ToolResult }) {
               </TableHeader>
               <TableBody>
                 {result.table.rows.map((row, r) => (
-                  <TableRow key={r} className={cn(row[0] === 'Total tax' && 'bg-mint font-semibold')}>
+                  <TableRow key={r} className={cn(r === result.table!.rows.length - 1 && 'bg-mint font-semibold')}>
                     {row.map((cell, i) => (
                       <TableCell key={i} className={cn('px-1.5 text-[0.72rem] tabular-nums sm:px-3 sm:text-sm', i > 0 && 'text-right')}>
                         {cell}

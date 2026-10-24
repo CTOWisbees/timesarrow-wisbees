@@ -12,11 +12,12 @@ import { cn } from '@/lib/utils'
 
 import { type OrbitLabel, relaxLabels } from './label-layout'
 import { useOrbitLoop, useStageSize } from './orbit'
-import { type HighlightsData, itemImage, itemLabel } from './types'
+import { firstSentence, type HighlightsData, itemImage, itemLabel } from './types'
 
-/** Ring radii as a share of the (square) stage. */
-const RX = 44
-const RY = 15
+/** Each ring is drawn as a flat ellipse (RY of RX), tilted, then stretched to fill the stage, so a wide stage is filled edge to edge. */
+const RY = 0.34
+/** How much of the half-width and half-height the rings use; the rest is room for the labels. */
+const FILL = 0.86
 
 /**
  * Layout "atom". Two columns on a wide screen, filling the viewport: the section text on the left,
@@ -31,7 +32,7 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
   const [selected, setSelected] = useState<number | null>(null)
   const stage = useRef<HTMLDivElement>(null)
   const panel = useRef<HTMLDivElement>(null)
-  const { size, compact } = useStageSize(stage)
+  const { size, compact, dims } = useStageSize(stage)
 
   const dots = useRef<(HTMLSpanElement | null)[]>([])
   const tags = useRef<(HTMLDivElement | null)[]>([])
@@ -54,11 +55,11 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
         if (!held.current[i]) angles.current[i] += ((dir * Math.PI * 2) / (22 + i * 3)) * dt
         const a = angles.current[i]
         const tilt = (i * Math.PI) / count
-        const px = ((RX * Math.cos(a)) / 100) * W
-        const py = ((RY * Math.sin(a)) / 100) * W
+        const px = Math.cos(a)
+        const py = RY * Math.sin(a)
         const l = state.current[i]
-        l.ax = W / 2 + px * Math.cos(tilt) - py * Math.sin(tilt)
-        l.ay = H / 2 + px * Math.sin(tilt) + py * Math.cos(tilt)
+        l.ax = W / 2 + ((W / 2) * FILL) * (px * Math.cos(tilt) - py * Math.sin(tilt))
+        l.ay = H / 2 + ((H / 2) * FILL) * (px * Math.sin(tilt) + py * Math.cos(tilt))
         const tag = tags.current[i]
         if (tag) {
           l.w = tag.offsetWidth
@@ -102,8 +103,8 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
   const currentImage = current ? itemImage(current) : null
 
   return (
-    <section id="why-wisbees" aria-labelledby="highlights-title" className="bg-card py-12 sm:py-16 lg:flex lg:min-h-[calc(100svh-var(--header-h))] lg:items-center lg:py-10">
-      <div className="container-page grid w-full items-center gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-12">
+    <section id="why-wisbees" aria-labelledby="highlights-title" className="bg-card overflow-hidden py-12 sm:py-16 lg:flex lg:min-h-[calc(100svh-var(--header-h))] lg:items-stretch lg:py-0">
+      <div className="mx-auto grid w-full max-w-[110rem] items-center gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-6 lg:px-10 xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
         {/* Left: the section text, or the chosen point */}
         <div ref={panel} className={cn('min-w-0 lg:order-1', current ? 'order-2' : 'order-1')}>
           {current ? (
@@ -137,6 +138,7 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
                 {data.title}
               </h2>
               {data.subtitle && <p className="text-ink-soft mt-4 text-lg">{data.subtitle}</p>}
+              <p className="text-ink-soft mt-4 text-base leading-relaxed">Advice that stays on your side: you pay a fixed fee, never a commission, and every recommendation comes with its reasoning.</p>
               <p className="text-muted-foreground mt-6 text-sm">Select a point on the atom to read more.</p>
               {data.cta?.href && (
                 <Button asChild size="cta" className="mt-7">
@@ -151,16 +153,16 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
 
         {/* Right: the atom */}
         <div className={cn('min-w-0 lg:order-2', current ? 'order-1' : 'order-2')}>
-          <div ref={stage} className="relative mx-auto aspect-square w-full max-w-[34rem] lg:max-w-[min(36rem,calc(100svh-var(--header-h)-5rem))]">
-            <svg className="absolute inset-0 size-full" viewBox="0 0 100 100" aria-hidden>
+          <div ref={stage} className="relative mx-auto aspect-square w-full max-w-[34rem] lg:aspect-auto lg:h-[calc(100svh-var(--header-h))] lg:min-h-[34rem] lg:max-w-none">
+            <svg className="absolute inset-0 size-full" aria-hidden>
               {items.map((item, i) => (
                 <ellipse
                   key={item.id ?? item.title}
-                  cx="50"
-                  cy="50"
-                  rx={RX}
+                  cx="0"
+                  cy="0"
+                  rx="1"
                   ry={RY}
-                  transform={`rotate(${(i * 180) / count} 50 50)`}
+                  transform={`translate(${dims.w / 2} ${dims.h / 2}) scale(${(dims.w / 2) * FILL} ${(dims.h / 2) * FILL}) rotate(${(i * 180) / count})`}
                   fill="none"
                   stroke="var(--brand-green)"
                   strokeOpacity={selected === i ? 0.75 : 0.35}
@@ -186,10 +188,10 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
             </svg>
 
             {/* Nucleus */}
-            <div className="pointer-events-none absolute top-1/2 left-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:size-24">
+            <div className="pointer-events-none absolute top-1/2 left-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center sm:size-24 lg:size-32">
               <span className="bg-primary/15 absolute inset-0 rounded-full motion-safe:animate-ping [animation-duration:3s]" aria-hidden />
               <span className="bg-mint ring-primary/30 relative flex size-full items-center justify-center rounded-full shadow-[0_0_40px_rgb(15_107_76/0.3)] ring-2">
-                <Image src="/brand/wisbees-mark.png" alt="WisBees" width={64} height={64} className="size-9 sm:size-14" />
+                <Image src="/brand/wisbees-mark.png" alt="WisBees" width={64} height={64} className="size-9 sm:size-14 lg:size-20" />
               </span>
             </div>
 
@@ -234,11 +236,18 @@ export function HighlightsAtom({ data }: { data: HighlightsData }) {
                       'focus-visible:ring-ring/50 border font-medium shadow-md transition-colors focus-visible:ring-3 focus-visible:outline-none',
                       compact
                         ? 'flex size-8 items-center justify-center rounded-full text-sm tabular-nums'
-                        : 'rounded-full px-3 py-1.5 text-[0.75rem] whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm',
+                        : 'max-w-[15rem] rounded-2xl px-4 py-2 text-left text-[0.8rem] sm:text-sm',
                       on ? 'bg-primary border-primary text-white' : 'bg-card text-ink border-primary/30 hover:border-primary',
                     )}
                   >
-                    {compact ? i + 1 : itemLabel(item)}
+                    {compact ? (
+                      i + 1
+                    ) : (
+                      <>
+                        <span className="block font-semibold whitespace-nowrap">{itemLabel(item)}</span>
+                        <span className={cn('mt-0.5 line-clamp-2 text-[0.72rem] leading-snug font-normal', on ? 'text-white/85' : 'text-ink-soft')}>{firstSentence(item.description)}</span>
+                      </>
+                    )}
                   </button>
 
                   {/* Hover card (pointer devices, roomy stages only) */}

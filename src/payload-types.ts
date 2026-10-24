@@ -789,9 +789,6 @@ export interface HomePage {
   };
   highlights: {
     enabled?: boolean | null;
-    /**
-     * Which design of this section the website shows. Developers can preview the others locally.
-     */
     variant: 'checklist' | 'solar' | 'atom';
     title: string;
     subtitle?: string | null;
@@ -803,21 +800,21 @@ export interface HomePage {
       href: string;
     };
     /**
-     * In the Solar system and Atom layouts each point becomes an orbiting label; Atom draws one ring per point.
+     * Each point becomes an orbiting label on its own ring around the WisBees mark.
      */
     items?:
       | {
           title: string;
           /**
-           * Shown under the title, and in the hover card in the Atom layout.
+           * Its first sentence shows as the second line of the orbiting label; the whole text is in the hover card.
            */
           description: string;
           /**
-           * A few words for the orbiting label (Solar system and Atom). Falls back to the title.
+           * A few words for the orbiting label. Falls back to the title.
            */
           shortLabel?: string | null;
           /**
-           * Optional picture that orbits with the label (Solar system) or shows in the hover card (Atom).
+           * Optional picture shown in the hover card.
            */
           image?: (number | null) | Media;
           id?: string | null;
@@ -876,7 +873,7 @@ export interface HomePage {
   gallery: {
     enabled?: boolean | null;
     /**
-     * Which design of this section the website shows. Developers can preview the others locally.
+     * No longer used: the gallery always uses the collage layout.
      */
     variant: 'immersive' | 'split' | 'mosaic' | 'collage';
     title: string;

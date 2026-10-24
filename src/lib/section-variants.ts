@@ -11,15 +11,6 @@
  * switch. The CMS dropdown and the dev menu pick it up from this list.
  */
 export const SECTION_VARIANTS = {
-  highlights: {
-    label: 'Why WisBees',
-    anchor: 'why-wisbees',
-    variants: [
-      { value: 'checklist', label: 'Checklist', hint: 'Two columns of ticked points' },
-      { value: 'solar', label: 'Solar system', hint: 'Logo as the sun, points and images orbiting on rings' },
-      { value: 'atom', label: 'Atom', hint: 'Logo as the nucleus, one electron ring per point, hover for details' },
-    ],
-  },
   gallery: {
     label: 'Gallery',
     anchor: 'gallery',

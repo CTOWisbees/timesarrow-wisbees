@@ -1,6 +1,3 @@
-import { Suspense } from 'react'
-
-import { VariantSwitcher } from '@/components/dev/variant-switcher'
 import { CopilotFab } from '@/components/layout/copilot-fab'
 import { BookCall } from '@/components/sections/book-call/book-call'
 import { Faq } from '@/components/sections/faq'
@@ -11,7 +8,7 @@ import { IllustrationBand } from '@/components/sections/illustration-band'
 import { ModelPortfolios } from '@/components/sections/model-portfolios'
 import { SipCalculator } from '@/components/sections/sip-calculator/calculator'
 import { getFaqs, getGalleryItems, getHomePage, getModelPortfolios } from '@/lib/queries'
-import { resolveToggles, resolveVariant, variantPreviewEnabled } from '@/lib/section-variants'
+import { resolveToggles, variantPreviewEnabled } from '@/lib/section-variants'
 
 // Payload hooks revalidate on publish; this is only a safety net.
 export const revalidate = 3600
@@ -32,9 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   return (
     <>
       {on(home.hero) && <Hero data={home.hero} />}
-      {on(home.highlights) && (
-        <Highlights data={home.highlights} variant={resolveVariant('highlights', home.highlights.variant, params)} />
-      )}
+      {on(home.highlights) && <Highlights data={home.highlights} />}
       {on(home.calculator) && <SipCalculator data={home.calculator} />}
       {home.illustration && on(home.illustration) && <IllustrationBand data={home.illustration} />}
       {on(home.portfolios) && <ModelPortfolios data={home.portfolios} portfolios={portfolios} />}
@@ -49,14 +44,6 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         />
       )}
       <CopilotFab raised={variantPreviewEnabled()} />
-      {variantPreviewEnabled() && (
-        <Suspense>
-          <VariantSwitcher
-            sections={['highlights']}
-            live={{ highlights: home.highlights.variant }}
-          />
-        </Suspense>
-      )}
     </>
   )
 }
