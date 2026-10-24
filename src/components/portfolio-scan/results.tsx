@@ -14,7 +14,7 @@ import type { SubScoreId } from '@/lib/portfolio/scoring'
 import { cn } from '@/lib/utils'
 
 import { demoSignIn, refreshView } from './actions'
-import { AllocationDonut, MixBar, RankedBars, RiskMeter, ScoreGauge } from './charts'
+import { AllocationDonut, MixBar, RankedBars, RiskMeter, ScoreDisplay } from './charts'
 import { PaidCards, PlansIntro } from './paid-cards'
 import { PlanSheet } from './plan-sheet'
 import { BAND_STATUS, fill, pct, type ScanCopy, STATUS } from './shared'
@@ -85,7 +85,7 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
       {/* P0: the score, its five parts and the report download, in one card. */}
       <section aria-labelledby="score-title" className="bg-card rounded-3xl border p-6 sm:p-10">
         <div className="grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)] md:items-center">
-          <ScoreGauge score={score.score} range={score.range} label={band.label} />
+          <ScoreDisplay score={score.score} range={score.range} label={band.label} />
           <div>
             <h2 id="score-title" className="flex items-center gap-2.5 text-3xl font-semibold tracking-tight">
               <BandIcon className="size-7 shrink-0" style={{ color: STATUS[status] }} aria-hidden />

@@ -10,41 +10,25 @@ import { CLASS_COLORS, CLASS_LABELS, pct } from './shared'
 
 const SERIES = '#0f8a55'
 
-/**
- * Score gauge: a 0–100 semicircle with the score as the hero number. The arc is
- * neutral ink; the band word (with its icon, rendered by the caller) carries status.
- */
-export function ScoreGauge({ score, range, label }: { score: number; range: [number, number] | null; label: string }) {
-  const r = 80
-  const circumference = Math.PI * r
-  const arc = (from: number, to: number) => {
-    const a0 = Math.PI * (1 - from / 100)
-    const a1 = Math.PI * (1 - to / 100)
-    const p = (a: number) => `${100 + r * Math.cos(a)} ${100 - r * Math.sin(a)}`
-    return `M ${p(a0)} A ${r} ${r} 0 0 1 ${p(a1)}`
-  }
+/** The 0–100 score as the hero number, with the likely range beneath it. The band word (and its icon) is rendered by the caller. */
+export function ScoreDisplay({ score, range, label }: { score: number; range: [number, number] | null; label: string }) {
   return (
-    <figure className="relative mx-auto w-full max-w-72" role="img" aria-label={`${label}: ${score} out of 100${range ? `, likely between ${range[0]} and ${range[1]}` : ''}`}>
-      <svg viewBox="0 0 200 112" className="w-full" aria-hidden>
-        <path d={arc(0, 100)} fill="none" stroke="var(--border)" strokeWidth="14" strokeLinecap="round" />
-        {range && <path d={arc(range[0], range[1])} fill="none" stroke="var(--brand-mint-strong)" strokeWidth="14" strokeLinecap="round" />}
-        <path
-          d={arc(0, 100)}
-          fill="none"
-          stroke="var(--brand-green)"
-          strokeWidth="14"
-          strokeLinecap="round"
-          strokeDasharray={`${(score / 100) * circumference} ${circumference}`}
-        />
-        {[0, 40, 60, 80, 100].map((t) => {
-          const a = Math.PI * (1 - t / 100)
-          return <circle key={t} cx={100 + (r - 14) * Math.cos(a)} cy={100 - (r - 14) * Math.sin(a)} r="1.6" fill="var(--muted-foreground)" />
-        })}
-      </svg>
-      <figcaption className="absolute inset-x-0 bottom-0 text-center">
-        <span className="font-heading text-ink block text-6xl leading-none font-semibold tabular-nums">{score}</span>
-        <span className="text-muted-foreground mt-1 block text-xs">out of 100</span>
-      </figcaption>
+    <figure
+      className="bg-mist mx-auto flex w-full max-w-64 flex-col items-center rounded-2xl px-6 py-8 text-center"
+      role="img"
+      aria-label={`${label}: ${score} out of 100${range ? `, likely between ${range[0]} and ${range[1]}` : ''}`}
+    >
+      <span className="font-heading text-brand-green block text-8xl leading-none font-semibold tabular-nums" aria-hidden>
+        {score}
+      </span>
+      <span className="text-muted-foreground mt-2 block text-sm" aria-hidden>
+        out of 100
+      </span>
+      {range && (
+        <span className="text-ink-soft mt-3 block text-xs tabular-nums" aria-hidden>
+          Likely {range[0]}–{range[1]}
+        </span>
+      )}
     </figure>
   )
 }
