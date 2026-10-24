@@ -22,7 +22,7 @@ export default async function ToolPage({ params }: { params: Params }) {
 
   return (
     <>
-      <div className="bg-mint border-b">
+      <div className="from-mint to-paper border-b bg-gradient-to-b">
         <div className="container-page py-8 md:py-12">
           <nav aria-label="Breadcrumb" className="text-muted-foreground text-sm">
             <Link href="/tools" className="hover:text-primary">
@@ -31,7 +31,7 @@ export default async function ToolPage({ params }: { params: Params }) {
             <span className="mx-2">/</span>
             <span className="text-ink">{def.name}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">{def.name}</h1>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">{def.name}</h1>
           <p className="text-ink-soft mt-3 max-w-2xl text-lg">{def.summary}</p>
           <CalculatorSwitcher activeSlug={def.slug} />
         </div>

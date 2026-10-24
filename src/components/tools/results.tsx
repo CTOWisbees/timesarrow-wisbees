@@ -6,24 +6,24 @@ import { cn } from '@/lib/utils'
 
 import { Donut, Legend, StackedBars } from './charts'
 
-export const panel = 'bg-card rounded-2xl border p-4 shadow-[0_1px_2px_rgb(16_34_27/0.04)] sm:p-7'
+export const panel = 'bg-card rounded-3xl border p-5 shadow-[0_2px_12px_rgb(16_34_27/0.05)] sm:p-8'
 
 function StatCard({ stat }: { stat: Stat }) {
   const tone = stat.tone ?? 'default'
   return (
     <div
       className={cn(
-        'rounded-xl border p-4',
-        tone === 'primary' && 'bg-primary border-primary p-5 text-white sm:p-6',
+        'rounded-2xl border p-4',
+        tone === 'primary' && 'border-primary from-primary bg-gradient-to-br to-[#0a4a34] p-6 text-white shadow-[0_10px_24px_rgb(15_107_76/0.25)] sm:p-8',
         tone === 'accent' && 'bg-amber-soft border-amber-line',
-        tone === 'default' && 'bg-mist',
+        tone === 'default' && 'bg-mist/70',
       )}
     >
       <dt className={cn('text-sm', tone === 'primary' ? 'text-white/80' : 'text-ink-soft')}>{stat.label}</dt>
       <dd
         className={cn(
           'font-heading mt-1 font-semibold tabular-nums',
-          tone === 'primary' ? 'text-3xl sm:text-4xl' : 'text-xl @2xl:text-2xl',
+          tone === 'primary' ? 'text-4xl sm:text-5xl' : 'text-xl @2xl:text-2xl',
           tone === 'default' && 'text-ink',
           tone === 'accent' && 'text-amber-ink',
         )}

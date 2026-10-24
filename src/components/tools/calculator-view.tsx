@@ -45,6 +45,7 @@ export function CalculatorView({ slug }: { slug: string }) {
         </section>
 
         <section className={panel} aria-label="Results" aria-live="polite">
+          <h2 className="mb-5 text-xl font-semibold">Your estimate</h2>
           <Summary result={result} />
         </section>
       </div>
