@@ -14,7 +14,7 @@ import type { SubScoreId } from '@/lib/portfolio/scoring'
 import { cn } from '@/lib/utils'
 
 import { demoSignIn, refreshView } from './actions'
-import { AllocationDonut, MixBar, RankedBars, RiskMeter, ScoreDisplay } from './charts'
+import { AllocationDonut, MixBar, RankedBars, RiskMeter } from './charts'
 import { PaidCards, PlansIntro } from './paid-cards'
 import { PlanSheet } from './plan-sheet'
 import { BAND_STATUS, fill, pct, type ScanCopy, STATUS } from './shared'
@@ -84,8 +84,8 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
     <div className="mt-10 space-y-12">
       {/* P0: the score, its five parts and the report download, in one card. */}
       <section aria-labelledby="score-title" className="bg-card rounded-3xl border p-6 sm:p-10">
-        <div className="grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)] md:items-center">
-          <ScoreDisplay score={score.score} range={score.range} label={band.label} />
+        <div className="grid gap-8 md:grid-cols-[22rem_minmax(0,1fr)] md:items-center">
+          <RiskMeter level={summary.volatility.label} />
           <div>
             <h2 id="score-title" className="flex items-center gap-2.5 text-3xl font-semibold tracking-tight">
               <BandIcon className="size-7 shrink-0" style={{ color: STATUS[status] }} aria-hidden />
@@ -148,9 +148,8 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
         <PlansIntro view={view} copy={copy} />
         <div className="grid gap-6 lg:grid-cols-2">
           <Panel title={copy.blocks.risk}>
-            <RiskMeter level={summary.volatility.label} labels={copy.riskLabels} />
             {summary.volatility.annual !== null && summary.volatility.benchmarkAnnual !== null ? (
-              <p className="text-ink-soft mt-4 text-sm leading-relaxed">
+              <p className="text-ink-soft text-sm leading-relaxed">
                 {fill(copy.riskSentence, {
                   annual: (summary.volatility.annual * 100).toFixed(1),
                   benchmarkAnnual: (summary.volatility.benchmarkAnnual * 100).toFixed(1),
@@ -158,7 +157,7 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
                 })}
               </p>
             ) : (
-              <p className="text-muted-foreground mt-4 text-sm">Not enough price history to measure this.</p>
+              <p className="text-muted-foreground text-sm">Not enough price history to measure this.</p>
             )}
           </Panel>
           <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['drawdown', 'returns']} />

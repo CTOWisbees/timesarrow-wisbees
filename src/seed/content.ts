@@ -33,7 +33,7 @@ export const siteSettings = {
     { label: 'Our offerings', href: '#portfolios' },
     { label: 'About', href: '#why-wisbees' },
     { label: 'Port Scan', href: '/portfolio-scan' },
-    { label: 'Tools', href: '/tools' },
+    { label: 'Tools', href: '/tools/sip-calculator' },
     { label: 'Blogs', href: 'https://www.wisbees.com/' },
   ],
   loginCta: { label: 'Login / Sign up', href: '/login' },
@@ -51,7 +51,7 @@ export const siteSettings = {
       heading: 'Learn and tools',
       links: [
         { label: 'Learn', href: '/coming-soon' },
-        { label: 'Tools and calculators', href: '/tools' },
+        { label: 'Tools and calculators', href: '/tools/sip-calculator' },
         { label: 'Port Scan', href: '/portfolio-scan' },
         { label: 'Blogs', href: 'https://www.wisbees.com/' },
       ],
