@@ -28,17 +28,17 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
 
         <CmsImage
           media={data.image}
-          fallbackSrc="/brand/hero-investors.webp"
+          fallbackSrc="/brand/hero-comparison.webp"
           fallbackAlt="A calm, confident investor beside a confused one, both at their laptops"
-          width={1886}
-          height={958}
+          width={2000}
+          height={1131}
           priority
-          sizes="(min-width: 1024px) 864px, 100vw"
-          className="mt-6 h-auto w-full max-w-[min(54rem,calc((100svh-var(--header-h)-21rem)*1.97))] sm:mt-8"
+          sizes="(min-width: 1024px) 1024px, 100vw"
+          className="mt-6 h-auto w-full max-w-[min(66rem,calc((100svh-var(--header-h)-19rem)*1.77))] sm:mt-6"
         />
 
         {/* Stacked full-width on phones, side by side from the sm breakpoint, with room between them. */}
-        <div className="mt-8 flex w-full max-w-xs flex-col gap-3 sm:mt-10 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center sm:gap-6">
+        <div className="mt-8 flex w-full max-w-xs flex-col gap-3 sm:mt-8 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center sm:gap-6">
           {data.secondaryCta?.href && (
             <Button
               asChild
