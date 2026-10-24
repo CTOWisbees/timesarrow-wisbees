@@ -4,13 +4,13 @@ import type { HomePage } from '@/payload-types'
 export function IllustrationBand({ data }: { data: NonNullable<HomePage['illustration']> }) {
   // The band takes the paper colour of the illustration, so its edges do not show.
   return (
-    <div className="bg-[#f9f6ed]">
+    <div className="bg-[#f8f8f6]">
       <CmsImage
         media={data.image}
-        fallbackSrc="/brand/city-wisbees-v2.webp"
+        fallbackSrc="/brand/city-wisbees-v3.webp"
         fallbackAlt="Illustrated WisBees village: the investment advisory office, WisBees Buzz for IPOs and NFOs, the WBC business carnival and WisBees.com for research, news and insights"
-        width={2000}
-        height={1049}
+        width={1600}
+        height={900}
         sizes="100vw"
         className="h-auto w-full"
       />

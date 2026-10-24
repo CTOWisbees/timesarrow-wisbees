@@ -4,7 +4,6 @@ import { Bar, BarChart, Cell, LabelList, Pie, PieChart, ReferenceLine, XAxis, YA
 
 import { type ChartConfig, ChartContainer, ChartTooltip } from '@/components/ui/chart'
 import { formatInr } from '@/lib/format-inr'
-import { cn } from '@/lib/utils'
 
 import { CLASS_COLORS, CLASS_LABELS, pct } from './shared'
 
@@ -155,25 +154,75 @@ export function RankedBars({ data, threshold, thresholdLabel, compact }: { data:
   )
 }
 
-const LEVELS = ['low', 'moderate', 'high', 'very_high'] as const
+type Level = 'low' | 'moderate' | 'high' | 'very_high'
 
-/** Ordinal meter: four segments, the current one filled and named; the number sits beside it. */
-export function RiskMeter({ level, labels }: { level: (typeof LEVELS)[number] | null; labels: Record<(typeof LEVELS)[number], string> }) {
-  const idx = level ? LEVELS.indexOf(level) : -1
+/** The six bands of the SEBI riskometer, left to right. */
+const BANDS = [
+  { label: ['Low', 'Risk'], color: '#439b52' },
+  { label: ['Low to', 'Moderate', 'Risk'], color: '#9cc654' },
+  { label: ['Moderate', 'Risk'], color: '#f4ec5a' },
+  { label: ['Moderately', 'High Risk'], color: '#b98f3c' },
+  { label: ['High', 'Risk'], color: '#e8933b' },
+  { label: ['Very High', 'Risk'], color: '#d8392f' },
+] as const
+
+/** Which of the six bands each of our four volatility levels points at. */
+const LEVEL_BAND: Record<Level, number> = { low: 0, moderate: 2, high: 4, very_high: 5 }
+
+/**
+ * Riskometer in the manner of the SEBI mutual-fund label: six coloured bands on a half dial,
+ * the band names around the rim, a needle on the current band and a caption beneath.
+ */
+export function RiskMeter({ level }: { level: Level | null; labels?: Record<Level, string> }) {
+  const cx = 200
+  const cy = 205
+  const point = (r: number, deg: number) => `${cx + r * Math.cos((deg * Math.PI) / 180)} ${cy - r * Math.sin((deg * Math.PI) / 180)}`
+  const wedge = (r0: number, r1: number, from: number, to: number) =>
+    `M ${point(r1, from)} A ${r1} ${r1} 0 0 1 ${point(r1, to)} L ${point(r0, to)} A ${r0} ${r0} 0 0 0 ${point(r0, from)} Z`
+  const idx = level ? LEVEL_BAND[level] : -1
+  const needleDeg = 180 - (idx + 0.5) * 30
+  const caption = idx >= 0 ? `The risk of the portfolio is ${BANDS[idx].label.join(' ')}` : 'Risk: not available'
+
   return (
-    <div>
-      <div className="grid grid-cols-4 gap-1" role="img" aria-label={level ? `Risk: ${labels[level]}` : 'Risk: not available'}>
-        {LEVELS.map((l, i) => (
-          <span key={l} className={cn('h-2.5 rounded-full', i === idx ? 'bg-ink' : i < idx ? 'bg-ink-soft/40' : 'bg-border')} />
-        ))}
-      </div>
-      <div className="mt-2 grid grid-cols-4 gap-1 text-xs">
-        {LEVELS.map((l, i) => (
-          <span key={l} className={cn(i === idx ? 'text-ink font-semibold' : 'text-muted-foreground')}>
-            {labels[l]}
-          </span>
-        ))}
-      </div>
-    </div>
+    <figure className="mx-auto w-full max-w-md" role="img" aria-label={caption}>
+      <svg viewBox="0 0 400 270" className="w-full" aria-hidden>
+        {BANDS.map((b, i) => {
+          const from = 180 - i * 30 - 0.6
+          const to = 180 - (i + 1) * 30 + 0.6
+          const mid = 180 - (i + 0.5) * 30
+          const [x, y] = point(163, mid).split(' ')
+          return (
+            <g key={b.color}>
+              <path d={wedge(135, 197, from, to)} fill="#e6e7e8" />
+              <path d={wedge(70, 128, from, to)} fill={b.color} opacity={idx === -1 || idx === i ? 1 : 0.9} />
+              <text
+                transform={`translate(${x} ${y}) rotate(${90 - mid})`}
+                textAnchor="middle"
+                className="fill-ink text-[13px] font-semibold"
+                style={{ fontFamily: 'inherit' }}
+              >
+                {b.label.map((line, n) => (
+                  <tspan key={line} x="0" dy={n === 0 ? `${-(b.label.length - 1) * 0.5 * 1.05 + 0.35}em` : '1.05em'}>
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            </g>
+          )
+        })}
+        {idx >= 0 && (
+          <polygon
+            points={`${point(118, needleDeg)} ${point(9, needleDeg + 90)} ${point(9, needleDeg - 90)}`}
+            fill="#1a1a1a"
+          />
+        )}
+        <circle cx={cx} cy={cy} r="16" fill="#1a1a1a" />
+        <circle cx={cx} cy={cy} r="9" fill="#3a3a3a" />
+        <rect x="0" y="228" width="400" height="38" rx="2" fill="#e6e7e8" />
+        <text x="200" y="253" textAnchor="middle" className="fill-ink text-[16px] font-semibold" style={{ fontFamily: 'inherit' }}>
+          {caption}
+        </text>
+      </svg>
+    </figure>
   )
 }
