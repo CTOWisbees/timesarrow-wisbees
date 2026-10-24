@@ -37,14 +37,14 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
           className="mt-6 h-auto w-full max-w-[min(66rem,calc((100svh-var(--header-h)-19rem)*1.77))] sm:mt-6"
         />
 
-        {/* Stacked full-width on phones, side by side from the sm breakpoint, with room between them. */}
-        <div className="mt-8 flex w-full max-w-xs flex-col gap-3 sm:mt-8 sm:w-auto sm:max-w-none sm:flex-row sm:justify-center sm:gap-6">
+        {/* Stacked full-width on phones, side by side from the sm breakpoint, same height and width, with room between them. */}
+        <div className="mt-8 flex w-full max-w-xs flex-col gap-3 sm:mt-8 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-10">
           {data.secondaryCta?.href && (
             <Button
               asChild
               variant="brandOutline"
               size="cta"
-              className="border-primary/40 hover:border-primary h-12 w-full rounded-xl px-7 font-semibold shadow-[0_1px_2px_rgb(16_34_27/0.06)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(16_34_27/0.1)] sm:h-[3.25rem] sm:w-auto sm:min-w-[14rem]"
+              className="border-primary/40 hover:border-primary h-12 w-full rounded-xl px-7 font-semibold shadow-[0_1px_2px_rgb(16_34_27/0.06)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(16_34_27/0.1)] sm:h-[3.25rem] sm:w-60"
             >
               <Link href={data.secondaryCta.href} {...linkProps(data.secondaryCta.href)}>
                 {data.secondaryCta.label}
@@ -55,7 +55,7 @@ export function Hero({ data }: { data: HomePage['hero'] }) {
             <Button
               asChild
               size="cta"
-              className="group h-12 w-full rounded-xl px-7 font-semibold shadow-[0_6px_18px_rgb(15_107_76/0.3)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgb(15_107_76/0.4)] sm:h-[3.25rem] sm:w-auto sm:min-w-[14rem]"
+              className="group h-12 w-full rounded-xl px-7 font-semibold shadow-[0_6px_18px_rgb(15_107_76/0.3)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgb(15_107_76/0.4)] sm:h-[3.25rem] sm:w-60"
             >
               <Link href={data.primaryCta.href} {...linkProps(data.primaryCta.href)}>
                 {data.primaryCta.label}

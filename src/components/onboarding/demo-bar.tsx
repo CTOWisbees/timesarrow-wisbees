@@ -11,7 +11,7 @@ const STEPS = [
 /** Demo mode only: jump between steps while presenting. */
 export function DemoBar({ current }: { current: 1 | 2 | 3 }) {
   return (
-    <nav aria-label="Demo steps" className="bg-amber-soft text-amber-ink border-amber-line mb-6 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs">
+    <nav aria-label="Demo steps" className="bg-amber-soft text-amber-ink border-amber-line flex items-center gap-2 border-b px-4 py-1.5 text-xs sm:px-6">
       <span className="font-semibold">Demo mode</span>
       <span aria-hidden>·</span>
       {STEPS.map((s) => (

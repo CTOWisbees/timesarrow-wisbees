@@ -15,7 +15,7 @@ import { authErrorMessage, type AuthMode } from '@/lib/supabase/errors'
 import { cn } from '@/lib/utils'
 import type { Onboarding } from '@/payload-types'
 
-import { BotMessage, chipClass, enter, Typing, UserBubble } from './chat-ui'
+import { BotMessage, ChatLayout, chipClass, ComposerIdle, enter, Typing, UserBubble } from './chat-ui'
 import { devSignIn } from './dev-actions'
 import { ErrorAlert } from './fields'
 import { useTranscript } from './use-transcript'
@@ -147,13 +147,19 @@ export function AccountChat({
     return null
   }
 
-  return (
-    <div role="log" aria-label="Create an account or log in" className="space-y-5">
+  const messages = (
+    <>
       {chat.items.map((m) => (m.from === 'bot' ? <BotMessage key={m.id}>{m.node}</BotMessage> : <UserBubble key={m.id}>{m.node}</UserBubble>))}
       {chat.typing && <Typing />}
+      <div ref={endRef} />
+    </>
+  )
 
+  const composer = (
+    <>
+      {step === null && <ComposerIdle />}
       {step === 'mode' && (
-        <div className={cn('flex flex-wrap justify-end gap-2.5', enter)}>
+        <div className={cn('flex flex-wrap justify-center gap-2.5', enter)}>
           <button type="button" className={chipClass} onClick={() => chooseMode('signup')}>
             Create an account
           </button>
@@ -218,7 +224,7 @@ export function AccountChat({
       )}
 
       {step === 'consent' && (
-        <div className={cn('flex justify-end', enter)}>
+        <div className={cn('flex justify-center', enter)}>
           <button
             type="button"
             className={cn(chipClass, 'bg-primary hover:bg-brand-green-strong border-primary text-white hover:text-white')}
@@ -247,10 +253,10 @@ export function AccountChat({
           }}
         />
       )}
-
-      <div ref={endRef} />
-    </div>
+    </>
   )
+
+  return <ChatLayout label="Create an account or log in" messages={messages} composer={composer} />
 }
 
 function ConsentMessage({ text }: { text: string }) {
@@ -310,7 +316,7 @@ function TextReply({
   }
 
   return (
-    <form onSubmit={submit} noValidate className={cn('ml-auto w-full max-w-md space-y-2', enter)}>
+    <form onSubmit={submit} noValidate className={cn('w-full space-y-2', enter)}>
       <div className={cn('bg-card focus-within:border-ring focus-within:ring-ring/40 flex items-center gap-2 rounded-full border py-1.5 pr-1.5 pl-4 shadow-[0_1px_2px_rgb(16_34_27/0.04)] focus-within:ring-3', error && 'border-destructive')}>
         {prefix && <span className="text-ink-soft border-r pr-3 text-[0.95rem] tabular-nums">{prefix}</span>}
         <Input
@@ -382,7 +388,7 @@ function CodeReply({
   }
 
   return (
-    <div className={cn('ml-auto w-full max-w-md space-y-3', enter)}>
+    <div className={cn('w-full space-y-3', enter)}>
       <InputOTP
         maxLength={6}
         inputMode="numeric"

@@ -132,7 +132,7 @@ export function SubmitBlock({
 export function SignOutLink({ demo }: { demo?: boolean }) {
   if (demo) return null
   return (
-    <form action={signOut} className="mt-8 border-t pt-5">
+    <form action={signOut} className="pt-4 text-center">
       <Button type="submit" variant="link" className="text-muted-foreground h-auto p-0 text-sm">
         Not you? Log out
       </Button>
