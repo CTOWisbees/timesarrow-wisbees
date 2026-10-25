@@ -1,6 +1,6 @@
 import { formatInr } from '@/lib/format-inr'
 
-import { emi, lumpsum, sip, swp } from './finance'
+import { emi, lumpsum, sip, stepUpSip, swp } from './finance'
 import type { CalculatorDef, NumberField, ToolResult, Values } from './types'
 
 /** Projected and maturity figures are truncated, never rounded up. */
@@ -85,6 +85,69 @@ const sipDef: CalculatorDef = {
       `n = ${n(v, 'years')} × 12 = ${months} months`,
       `FV = ${formatInr(P)} × [ ((1 + ${dec(i)})^${months} − 1) / ${dec(i)} ] × (1 + ${dec(i)}) = ${proj(r.value)}`,
       `Invested = ${formatInr(P)} × ${months} = ${proj(r.invested)}, so returns = ${proj(r.returns)}`,
+    ]
+  },
+}
+
+// ───────────────────────────── Step-up SIP ─────────────────────────────
+
+const stepUpDef: CalculatorDef = {
+  slug: 'step-up-sip-calculator',
+  name: 'Step-up SIP Calculator',
+  summary: 'See how raising your SIP every year grows the corpus compared with a flat SIP.',
+  fields: [
+    num('amount', 'Starting monthly investment', { min: 500, max: 100_000, step: 500, default: 10_000, format: 'inr' }),
+    num('stepUp', 'Annual step-up', { min: 1, max: 50, step: 1, default: 10, format: 'percent', hint: 'How much you raise the monthly amount each year' }),
+    rate(12),
+    period(),
+    inflation(),
+  ],
+  compute(v) {
+    const args = { monthly: n(v, 'amount'), stepUp: n(v, 'stepUp'), annualReturn: n(v, 'rate'), years: n(v, 'years') }
+    const r = stepUpSip(args)
+    const flat = sip({ monthly: args.monthly, annualReturn: args.annualReturn, years: args.years })
+    const base = growthResult(r, v)
+    const last = r.yearly[r.yearly.length - 1]
+    return {
+      ...base,
+      stats: [
+        ...base.stats,
+        { label: 'Extra over a flat SIP', value: proj(r.value - flat.value) },
+        { label: `Monthly SIP in year ${args.years}`, value: proj(last.monthly) },
+      ],
+      table: {
+        title: 'Year-by-year breakdown',
+        columns: ['Year', 'Monthly SIP', 'Invested', 'Returns', 'Total value'],
+        rows: r.yearly.map((y) => [String(y.year), proj(y.monthly), proj(y.invested), proj(y.value - y.invested), proj(y.value)]),
+      },
+      notes: [
+        `A flat SIP of ${due(args.monthly)} a month would grow to ${proj(flat.value)}. Raising it by ${dec(args.stepUp)}% each year adds ${proj(r.value - flat.value)}. ` +
+          `Today’s money assumes ${dec(n(v, 'inflation'))}% inflation a year for ${years(args.years)}. The return rate is not adjusted for tax or fund charges.`,
+      ],
+    }
+  },
+  method: {
+    intro:
+      'The monthly amount is the same for twelve months, then rises by the step-up percentage at the start of each new year. Each instalment is invested at the start of the month and grows at one-twelfth of the yearly return, compounded monthly.',
+    formulas: [
+      'Amount in year y = P × (1 + s)^(y − 1)',
+      'FV = Σ over years y of [ Amount(y) × ((1 + i)^12 − 1) / i × (1 + i) × (1 + i)^(12 × (Y − y)) ]',
+      'P = starting monthly investment, s = step-up ÷ 100, i = annual return ÷ 12 ÷ 100, Y = number of years',
+      todayFormula,
+    ],
+  },
+  worked(v) {
+    const P = n(v, 'amount')
+    const s = n(v, 'stepUp') / 100
+    const i = n(v, 'rate') / 12 / 100
+    const Y = n(v, 'years')
+    const r = stepUpSip({ monthly: P, stepUp: n(v, 'stepUp'), annualReturn: n(v, 'rate'), years: Y })
+    const last = r.yearly[r.yearly.length - 1]
+    return [
+      `i = ${dec(n(v, 'rate'))} ÷ 12 ÷ 100 = ${dec(i)}, s = ${dec(n(v, 'stepUp'))} ÷ 100 = ${dec(s)}`,
+      `Year 1 = ${formatInr(P)} a month; year ${Y} = ${formatInr(P)} × (1 + ${dec(s)})^${Y - 1} = ${proj(last.monthly)} a month`,
+      `Each year's twelve instalments are valued at the end of year ${Y} and added up: FV = ${proj(r.value)}`,
+      `Invested = ${proj(r.invested)}, so returns = ${proj(r.returns)}`,
     ]
   },
 }
@@ -240,7 +303,7 @@ const emiDef: CalculatorDef = {
   },
 }
 
-export const CALCULATORS: CalculatorDef[] = [sipDef, lumpsumDef, swpDef, emiDef]
+export const CALCULATORS: CalculatorDef[] = [stepUpDef, sipDef, lumpsumDef, swpDef, emiDef]
 
 export const getCalculator = (slug: string) => CALCULATORS.find((c) => c.slug === slug)
 

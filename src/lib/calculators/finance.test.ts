@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { emi, lumpsum, sip, swp } from './finance'
+import { emi, lumpsum, sip, stepUpSip, swp } from './finance'
 
 describe('sip', () => {
   it('matches FV = P × ((1+i)^n − 1)/i × (1+i)', () => {
@@ -10,6 +10,46 @@ describe('sip', () => {
     expect(r.value).toBeCloseTo(expected, 4)
     expect(Math.floor(r.value)).toBe(2323390)
     expect(r.invested).toBe(1_200_000)
+  })
+})
+
+describe('stepUpSip', () => {
+  const closedForm = (P: number, step: number, rate: number, Y: number) => {
+    const i = rate / 1200
+    let value = 0
+    let invested = 0
+    for (let y = 1; y <= Y; y++) {
+      const amount = P * Math.pow(1 + step / 100, y - 1)
+      value += amount * ((Math.pow(1 + i, 12) - 1) / i) * (1 + i) * Math.pow(1 + i, 12 * (Y - y))
+      invested += amount * 12
+    }
+    return { value, invested }
+  }
+
+  it('matches the year-by-year closed form', () => {
+    for (const step of [1, 5, 10, 25, 50])
+      for (const rate of [1, 8, 12, 30])
+        for (const years of [1, 5, 10, 40]) {
+          const r = stepUpSip({ monthly: 10000, stepUp: step, annualReturn: rate, years })
+          const e = closedForm(10000, step, rate, years)
+          expect(r.value / e.value).toBeCloseTo(1, 10)
+          expect(r.invested / e.invested).toBeCloseTo(1, 10)
+        }
+  })
+
+  it('gives ₹33,74,326 on ₹10,000 a month stepped up 10% a year at 12% for 10 years', () => {
+    const r = stepUpSip({ monthly: 10000, stepUp: 10, annualReturn: 12, years: 10 })
+    expect(Math.floor(r.value)).toBe(3374326)
+  })
+
+  it('with no step-up it is a flat SIP', () => {
+    const a = stepUpSip({ monthly: 10000, stepUp: 0, annualReturn: 12, years: 10 })
+    expect(a.value).toBeCloseTo(sip({ monthly: 10000, annualReturn: 12, years: 10 }).value, 6)
+  })
+
+  it('raises the monthly amount from year two only', () => {
+    const r = stepUpSip({ monthly: 10000, stepUp: 10, annualReturn: 12, years: 3 })
+    expect(r.yearly.map((y) => Math.round(y.monthly))).toEqual([10000, 11000, 12100])
   })
 })
 

@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { CALCULATORS, defaultValues, getCalculator } from './registry'
 
 describe('calculator registry', () => {
-  it('offers only SIP, lumpsum, SWP and EMI', () => {
-    expect(CALCULATORS.map((c) => c.slug)).toEqual(['sip-calculator', 'lumpsum-calculator', 'swp-calculator', 'emi-calculator'])
+  it('offers step-up SIP first, then SIP, lumpsum, SWP and EMI', () => {
+    expect(CALCULATORS.map((c) => c.slug)).toEqual(['step-up-sip-calculator', 'sip-calculator', 'lumpsum-calculator', 'swp-calculator', 'emi-calculator'])
   })
 
   it('SIP defaults give ₹23,23,390 on ₹12,00,000 invested', () => {

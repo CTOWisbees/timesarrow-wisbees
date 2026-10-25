@@ -21,6 +21,25 @@ export function sip({ monthly, annualReturn, years }: { monthly: number; annualR
   return { invested, value, returns: value - invested, yearly }
 }
 
+/**
+ * Step-up SIP: the monthly amount rises by `stepUp` percent at the start of every year after the first.
+ * Each instalment is still invested at the start of the month and compounds at r/12.
+ */
+export function stepUpSip({ monthly, stepUp, annualReturn, years }: { monthly: number; stepUp: number; annualReturn: number; years: number }) {
+  const i = pct(annualReturn) / 12
+  const yearly: (YearPoint & { monthly: number })[] = []
+  let value = 0
+  let invested = 0
+  let amount = monthly
+  for (let y = 1; y <= years; y++) {
+    if (y > 1) amount *= 1 + pct(stepUp)
+    for (let m = 0; m < 12; m++) value = (value + amount) * (1 + i)
+    invested += amount * 12
+    yearly.push({ year: y, monthly: amount, invested, value })
+  }
+  return { invested, value, returns: value - invested, yearly }
+}
+
 /** Lumpsum, yearly compounding: A = P × (1 + r)^t. */
 export function lumpsum({ amount, annualReturn, years }: { amount: number; annualReturn: number; years: number }) {
   const yearly: YearPoint[] = []
