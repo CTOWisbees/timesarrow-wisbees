@@ -100,3 +100,13 @@ export function emi({ principal, annualRate, years }: { principal: number; annua
   const total = payment * n
   return { emi: payment, total, interest: total - principal, principal, months: n, yearly }
 }
+
+/**
+ * Tax-loss harvesting, simplified: a booked loss cancels gains from other sales, and each rupee of gain it
+ * cancels saves tax at the rate the user enters. Whatever loss is left can be carried forward by the rules in force.
+ * Illustrative only: the user supplies the rate and the gains, and a CA confirms the treatment.
+ */
+export function harvest({ loss, gains, ratePct }: { loss: number; gains: number; ratePct: number }) {
+  const offset = Math.min(loss, gains)
+  return { offset, taxSaved: offset * pct(ratePct), carried: loss - offset, taxWithout: gains * pct(ratePct), taxWith: (gains - offset) * pct(ratePct) }
+}

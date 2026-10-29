@@ -3,14 +3,15 @@
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 
+import { CLASS_COLORS } from '@/components/portfolio-scan/shared'
 import { ASSUMED_RETURN, NOW_YEAR } from '@/lib/portal/data'
 import { extraMonthlyNeeded, goalStatus, projectGoal } from '@/lib/portal/math'
 import type { Goal } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
-import { addGoal, changeGoal, removeGoal } from '../actions'
+import { addGoal, changeGoal, coachGoalAction, removeGoal } from '../actions'
 import { GoalChart } from '../charts'
 import { usePortal } from '../state'
 import { AiNote, Bar, btn, Card, CardHead, Disclaimer, EmptyState, lakh, PageHead, Pill, rupees } from '../ui'
@@ -192,6 +193,19 @@ function GoalView({ goal }: { goal: Goal }) {
   const extra = extraMonthlyNeeded({ target: goal.target, ...base(goal, monthly, rate) })
   const longTerm = years(goal) > 15
   const dirty = monthly !== goal.monthly || Number(saved) !== goal.saved
+  const [coach, setCoach] = useState<{ text: string; sources: { title: string; url: string }[] } | null>(null)
+
+  // The Copilot's words come from the server (the RAG), a moment after the sliders settle.
+  useEffect(() => {
+    let live = true
+    const t = window.setTimeout(() => {
+      coachGoalAction(goal.id, monthly, rate).then((c) => live && setCoach(c))
+    }, 350)
+    return () => {
+      live = false
+      window.clearTimeout(t)
+    }
+  }, [goal.id, monthly, rate])
 
   return (
     <>
@@ -209,7 +223,7 @@ function GoalView({ goal }: { goal: Goal }) {
             </div>
             <div className="text-right">
               <div className="text-muted-foreground text-sm">Could reach by {goal.year}</div>
-              <div className={cn('font-heading text-2xl font-semibold tabular-nums', on ? 'text-[#1b7f4b]' : 'text-destructive')}>{lakh(projected)}</div>
+              <div className={cn('font-heading text-2xl font-semibold tabular-nums', on ? 'text-primary' : 'text-destructive')}>{lakh(projected)}</div>
             </div>
           </div>
           {years(goal) > 0 && <GoalChart points={points} target={goal.target} startYear={NOW_YEAR} endYear={goal.year} />}
@@ -240,8 +254,18 @@ function GoalView({ goal }: { goal: Goal }) {
           </div>
           <div className="bg-mint rounded-xl p-3.5">
             <b>Copilot says</b>
-            <p className="mt-1 text-sm">{extra > 0 ? `Adding ${rupees(extra)} a month puts you back on track at ${Math.round(rate * 100)}%.` : 'Nice. You are covered at this amount and growth rate.'}</p>
-            <AiNote>AI-made. Growth rates are assumptions, not promises.</AiNote>
+            <p className="mt-1 text-sm">{coach ? coach.text : extra > 0 ? `Adding ${rupees(extra)} a month puts you back on track at ${Math.round(rate * 100)}%.` : 'You are covered at this amount and growth rate.'}</p>
+            {coach && (
+              <p className="text-muted-foreground mt-1.5 flex flex-wrap gap-x-2 text-xs">
+                Sources:
+                {coach.sources.map((s) => (
+                  <Link key={s.title} href={s.url} className="text-primary underline underline-offset-2">
+                    {s.title}
+                  </Link>
+                ))}
+              </p>
+            )}
+            <AiNote>AI-made from your numbers and our published notes. Growth rates are assumptions, not promises.</AiNote>
           </div>
         </Card>
       </div>
@@ -250,9 +274,9 @@ function GoalView({ goal }: { goal: Goal }) {
         <CardHead title="A sensible mix for this goal" />
         <ul className="flex flex-col gap-2">
           {[
-            ['#0e6b4e', longTerm ? 'Shares (index and flexi-cap funds)' : 'Shares and bond funds', longTerm ? '80%' : '50%'],
-            ['#245a9e', 'Bond funds', longTerm ? '15%' : '40%'],
-            ['#c98a12', 'Gold', '5%'],
+            [CLASS_COLORS.equity, longTerm ? 'Shares (index and flexi-cap funds)' : 'Shares and bond funds', longTerm ? '80%' : '50%'],
+            [CLASS_COLORS.debt, 'Bond funds', longTerm ? '15%' : '40%'],
+            [CLASS_COLORS.gold, 'Gold', '5%'],
           ].map(([c, l, p]) => (
             <li key={l} className="flex items-center gap-2.5">
               <i className="size-3 rounded-[3px]" style={{ background: c }} />

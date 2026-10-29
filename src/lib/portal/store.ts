@@ -80,15 +80,14 @@ export async function createTicket(ownerId: string, topic: string, body: string)
   return Number(rows[0].id)
 }
 
-export async function logAnswer(ownerId: string, question: string, answer: string, intent: string, handedOver: boolean, version: string) {
-  await (await db()).query(`INSERT INTO portal.ai_log (owner_id, question, answer, intent, handed_over, version) VALUES ($1, $2, $3, $4, $5, $6)`, [
-    ownerId,
-    question.slice(0, 1000),
-    answer.slice(0, 4000),
-    intent,
-    handedOver,
-    version,
-  ])
+export async function logAnswer(
+  ownerId: string,
+  entry: { question: string; answer: string; intent: string; handedOver: boolean; version: string; sources: { title: string; url: string }[]; confidence: number; mode: string },
+) {
+  await (await db()).query(
+    `INSERT INTO portal.ai_log (owner_id, question, answer, intent, handed_over, version, sources, confidence, mode) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [ownerId, entry.question.slice(0, 1000), entry.answer.slice(0, 4000), entry.intent, entry.handedOver, entry.version, JSON.stringify(entry.sources), entry.confidence, entry.mode],
+  )
 }
 
 /** Everything the dashboard stores for a user, for "download my data". */
@@ -98,7 +97,7 @@ export async function exportPortalData(ownerId: string) {
     pool.query(`SELECT name, target_amount, target_year, saved_amount, monthly_amount, created_at FROM portal.goals WHERE owner_id = $1`, [ownerId]),
     pool.query(`SELECT kind, decision, detail, decided_at FROM portal.decisions WHERE owner_id = $1`, [ownerId]),
     pool.query(`SELECT topic, body, status, created_at FROM portal.tickets WHERE owner_id = $1`, [ownerId]),
-    pool.query(`SELECT question, answer, created_at FROM portal.ai_log WHERE owner_id = $1`, [ownerId]),
+    pool.query(`SELECT question, answer, sources, created_at FROM portal.ai_log WHERE owner_id = $1`, [ownerId]),
   ])
   return { goals: goals.rows, decisions: decisions.rows, tickets: tickets.rows, copilotAnswers: answers.rows }
 }

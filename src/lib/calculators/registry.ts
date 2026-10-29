@@ -1,6 +1,8 @@
 import { formatInr } from '@/lib/format-inr'
 
-import { emi, lumpsum, sip, stepUpSip, swp } from './finance'
+import { extraMonthlyNeeded, projectGoal } from '@/lib/portal/math'
+
+import { emi, harvest, lumpsum, sip, stepUpSip, swp } from './finance'
 import type { CalculatorDef, NumberField, ToolResult, Values } from './types'
 
 /** Projected and maturity figures are truncated, never rounded up. */
@@ -303,7 +305,106 @@ const emiDef: CalculatorDef = {
   },
 }
 
-export const CALCULATORS: CalculatorDef[] = [stepUpDef, sipDef, lumpsumDef, swpDef, emiDef]
+// ───────────────────────────── Goal gap ─────────────────────────────
+
+const goalGapDef: CalculatorDef = {
+  slug: 'goal-gap-calculator',
+  name: 'Goal Gap Calculator',
+  summary: 'Check whether you will reach a goal, and the extra monthly amount that closes any gap.',
+  fields: [
+    num('target', 'Amount you need', { min: 100_000, max: 1_000_000_000, step: 100_000, default: 5_000_000, format: 'inr' }),
+    num('saved', 'Already saved for it', { min: 0, max: 100_000_000, step: 50_000, default: 500_000, format: 'inr' }),
+    num('monthly', 'You invest each month', { min: 0, max: 500_000, step: 1_000, default: 15_000, format: 'inr' }),
+    rate(10),
+    period(),
+  ],
+  compute(v) {
+    const args = { saved: n(v, 'saved'), monthly: n(v, 'monthly'), annualReturn: n(v, 'rate') / 100, years: n(v, 'years') }
+    const p = projectGoal(args)
+    const target = n(v, 'target')
+    const gap = target - p.value
+    const extra = extraMonthlyNeeded({ target, ...args })
+    const rows = Array.from({ length: args.years }, (_, i) => {
+      const y = i + 1
+      const part = projectGoal({ ...args, years: y })
+      return { year: y, invested: part.invested, value: part.value }
+    })
+    return {
+      stats: [
+        { label: 'Amount you need', value: proj(target) },
+        { label: gap > 0 ? 'Shortfall' : 'Surplus', value: proj(Math.abs(gap)), tone: gap > 0 ? 'accent' : 'default' },
+        { label: 'Could reach', value: proj(p.value), tone: 'primary' },
+        { label: gap > 0 ? 'Extra to invest each month' : 'Extra needed each month', value: gap > 0 ? proj(extra) : '₹0' },
+      ],
+      donut: returnDonut(p.invested, p.value - p.invested),
+      series: growthSeries(rows),
+      table: growthTable(rows),
+      notes: [
+        gap > 0
+          ? `Investing ${proj(extra)} more each month, on top of ${proj(args.monthly)}, would close the gap at ${dec(n(v, 'rate'))}% a year. The extra amount is rounded up to the next ₹100.`
+          : `At ${proj(args.monthly)} a month you are on track at ${dec(n(v, 'rate'))}% a year. A lower return would shrink the surplus.`,
+        'The return is your own assumption, not a promised return. It is not adjusted for tax or fund charges.',
+      ],
+    }
+  },
+  method: {
+    intro: 'What you have saved compounds monthly, and each instalment is invested at the start of the month, the same convention as the SIP calculator. The extra monthly amount is the smallest round amount that makes the total reach your goal.',
+    formulas: ['FV = S × (1 + i)^n + M × ((1 + i)^n − 1) / i × (1 + i)', 'Extra = (Goal − FV) ÷ [((1 + i)^n − 1) / i × (1 + i)], rounded up to ₹100', 'S = saved, M = monthly investment, i = annual return ÷ 12 ÷ 100, n = months'],
+  },
+  worked(v) {
+    const i = n(v, 'rate') / 12 / 100
+    const months = n(v, 'years') * 12
+    const args = { saved: n(v, 'saved'), monthly: n(v, 'monthly'), annualReturn: n(v, 'rate') / 100, years: n(v, 'years') }
+    const p = projectGoal(args)
+    return [
+      `i = ${dec(n(v, 'rate'))} ÷ 12 ÷ 100 = ${dec(i)}, n = ${n(v, 'years')} × 12 = ${months} months`,
+      `FV = ${formatInr(args.saved)} × (1 + ${dec(i)})^${months} + ${formatInr(args.monthly)} × [((1 + ${dec(i)})^${months} − 1) / ${dec(i)}] × (1 + ${dec(i)}) = ${proj(p.value)}`,
+      `Goal ${proj(n(v, 'target'))} − ${proj(p.value)} = ${p.value >= n(v, 'target') ? 'no gap' : proj(n(v, 'target') - p.value)}`,
+    ]
+  },
+}
+
+// ───────────────────────────── Tax-loss harvesting ─────────────────────────────
+
+const harvestDef: CalculatorDef = {
+  slug: 'tax-loss-harvesting-calculator',
+  name: 'Tax-loss Harvesting Calculator',
+  summary: 'See how booking a loss can cancel gains and what it could save, using the tax rate you enter.',
+  fields: [
+    num('loss', 'Loss you could book', { min: 1_000, max: 100_000_000, step: 1_000, default: 38_000, format: 'inr' }),
+    num('gains', 'Gains you have booked this year', { min: 0, max: 100_000_000, step: 1_000, default: 112_000, format: 'inr' }),
+    num('rate', 'Tax rate on those gains', { min: 0, max: 40, step: 0.5, default: 12.5, format: 'percent', hint: 'Enter the rate that applies to you; it depends on the type of gain' }),
+  ],
+  compute(v) {
+    const r = harvest({ loss: n(v, 'loss'), gains: n(v, 'gains'), ratePct: n(v, 'rate') })
+    return {
+      stats: [
+        { label: 'Loss you book', value: proj(n(v, 'loss')) },
+        { label: 'Gains it cancels', value: proj(r.offset) },
+        { label: 'Tax you may save', value: proj(r.taxSaved), tone: 'primary' },
+        { label: 'Loss left to carry forward', value: proj(r.carried), tone: 'accent' },
+      ],
+      notes: [
+        `Tax on your gains falls from ${proj(r.taxWithout)} to ${proj(r.taxWith)}.`,
+        'Illustrative only. The rate and the gains are what you entered. Tax treatment, set-off between types of gain, carry-forward and rules that stop you buying the same investment back too soon can change this, so have a CA confirm before you sell.',
+      ],
+    }
+  },
+  method: {
+    intro: 'A booked loss cancels gains from other sales. Each rupee of gain it cancels saves tax at the rate you enter. Any loss left over may be carried forward under the rules in force.',
+    formulas: ['Gains cancelled = smaller of (loss, gains)', 'Tax saved = gains cancelled × rate ÷ 100', 'Loss left = loss − gains cancelled'],
+  },
+  worked(v) {
+    const r = harvest({ loss: n(v, 'loss'), gains: n(v, 'gains'), ratePct: n(v, 'rate') })
+    return [
+      `Gains cancelled = smaller of ${formatInr(n(v, 'loss'))} and ${formatInr(n(v, 'gains'))} = ${proj(r.offset)}`,
+      `Tax saved = ${proj(r.offset)} × ${dec(n(v, 'rate'))} ÷ 100 = ${proj(r.taxSaved)}`,
+      `Loss left to carry forward = ${formatInr(n(v, 'loss'))} − ${proj(r.offset)} = ${proj(r.carried)}`,
+    ]
+  },
+}
+
+export const CALCULATORS: CalculatorDef[] = [stepUpDef, sipDef, lumpsumDef, swpDef, emiDef, goalGapDef, harvestDef]
 
 export const getCalculator = (slug: string) => CALCULATORS.find((c) => c.slug === slug)
 

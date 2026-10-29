@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 export const PILL = {
-  good: 'bg-[#e3f3e9] text-[#1b7f4b]',
+  good: 'bg-mint text-brand-green-strong',
   warn: 'bg-amber-soft text-amber-ink',
-  bad: 'bg-[#fce4e1] text-destructive',
-  info: 'bg-[#e4eefa] text-[#245a9e]',
+  bad: 'bg-destructive/10 text-destructive',
+  info: 'bg-mint-strong/70 text-ink',
   grey: 'bg-mint text-ink-soft',
 } as const
 
@@ -45,7 +45,7 @@ export function PageHead({ title, sub, right }: { title: string; sub?: string; r
 export function Bar({ pct, warn, className }: { pct: number; warn?: boolean; className?: string }) {
   return (
     <div className={cn('bg-mint h-2.5 overflow-hidden rounded-full', className)} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
-      <i className={cn('block h-full rounded-full', warn ? 'bg-[#c98a12]' : 'bg-primary')} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
+      <i className={cn('block h-full rounded-full', warn ? 'bg-amber' : 'bg-primary')} style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
     </div>
   )
 }
@@ -79,7 +79,7 @@ export function Stat({ label, value, sub, tone }: { label: string; value: React.
   return (
     <Card className="gap-1">
       <span className="text-muted-foreground text-sm">{label}</span>
-      <div className={cn('font-heading text-2xl font-semibold tabular-nums', tone === 'up' && 'text-[#1b7f4b]', tone === 'down' && 'text-destructive')}>{value}</div>
+      <div className={cn('font-heading text-2xl font-semibold tabular-nums', tone === 'up' && 'text-primary', tone === 'down' && 'text-destructive')}>{value}</div>
       {sub && <span className="text-muted-foreground text-sm">{sub}</span>}
     </Card>
   )

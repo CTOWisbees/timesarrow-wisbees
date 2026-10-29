@@ -105,6 +105,7 @@ export function PortalShell({ name, data, tickets, children }: { name: string; d
 
 function Frame({ name, planLabel, children }: { name: string; planLabel: string; children: React.ReactNode }) {
   const slug = useSection()
+  const pathname = usePathname()
   const { openTodos, toast, data } = usePortal()
   const main = useRef<HTMLDivElement>(null)
   const [searching, setSearching] = useState(false)
@@ -176,7 +177,7 @@ function Frame({ name, planLabel, children }: { name: string; planLabel: string;
       </header>
 
       <div id="portal-main" ref={main} tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-6 outline-none sm:px-7 sm:pt-6 sm:pb-10">
-        <div className="mx-auto flex max-w-[70rem] flex-col gap-5">{children}</div>
+        <div key={slug + (pathname.split('/')[3] ?? '')} className="animate-in fade-in-0 slide-in-from-bottom-1 mx-auto flex max-w-[70rem] flex-col gap-5 duration-300">{children}</div>
       </div>
 
       <nav aria-label="Quick menu" className="bg-card grid shrink-0 grid-cols-5 border-t px-1 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] lg:hidden">

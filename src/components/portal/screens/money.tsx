@@ -98,7 +98,7 @@ function All({ data }: { data: PortalData }) {
                 </td>
                 <td className="px-5 py-3 text-right tabular-nums">{rupees(h.value)}</td>
                 <td className="px-5 py-3 text-right tabular-nums">{h.weight.toFixed(1)}%</td>
-                <td className={cn('px-5 py-3 text-right tabular-nums', h.gainPct === null ? 'text-muted-foreground' : h.gainPct >= 0 ? 'text-[#1b7f4b]' : 'text-destructive')}>
+                <td className={cn('px-5 py-3 text-right tabular-nums', h.gainPct === null ? 'text-muted-foreground' : h.gainPct >= 0 ? 'text-primary' : 'text-destructive')}>
                   {h.gainPct === null ? 'Cost not added' : `${h.gainPct >= 0 ? '+' : ''}${h.gainPct.toFixed(1)}%`}
                 </td>
               </tr>

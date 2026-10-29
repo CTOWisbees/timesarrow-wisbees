@@ -28,7 +28,7 @@ export function Support({ screen }: { screen: 'ask' | 'talk' | 'learn' | 'help' 
   }
 }
 
-type Msg = { from: 'me' | 'bot'; text: string; actions?: [string, string][] }
+type Msg = { from: 'me' | 'bot'; text: string; actions?: [string, string][]; sources?: { title: string; url: string }[]; handedOver?: boolean; mode?: string }
 
 function Ask() {
   const { name, data } = usePortal()
@@ -52,13 +52,13 @@ function Ask() {
     setQ('')
     start(async () => {
       const a = await askCopilot(t)
-      setMsgs((m) => [...m, { from: 'bot', text: a.text, actions: a.actions.length ? (a.actions as [string, string][]) : undefined }])
+      setMsgs((m) => [...m, { from: 'bot', text: a.text, actions: a.actions.length ? a.actions : undefined, sources: a.sources.length ? a.sources : undefined, handedOver: a.handedOver, mode: a.mode }])
     })
   }
 
   const suggestions = data.hasPortfolio
-    ? ['What is my health score?', 'What do my funds cost?', 'Is my risk within my comfort?', 'Am I on track for my goals?']
-    : ['How do I get started?']
+    ? ['What is my health score?', 'What do my funds cost?', 'Is my risk within my comfort?', 'Am I on track for my goals?', 'What is tax-loss harvesting?', 'How do you use AI?']
+    : ['How do I get started?', 'What do you charge?', 'How do you use AI?']
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
@@ -68,6 +68,16 @@ function Ask() {
           {msgs.map((m, i) => (
             <div key={i} className={cn('max-w-[88%] rounded-2xl px-4 py-3', m.from === 'me' ? 'bg-primary text-primary-foreground self-end rounded-br-sm' : 'bg-mint self-start rounded-bl-sm')}>
               {m.text}
+              {m.sources && (
+                <p className="text-muted-foreground mt-2 flex flex-wrap gap-x-2 gap-y-1 text-xs">
+                  Sources:
+                  {m.sources.map((s) => (
+                    <Link key={s.title} href={s.url} className="text-primary underline underline-offset-2">
+                      {s.title}
+                    </Link>
+                  ))}
+                </p>
+              )}
               {m.actions && (
                 <div className="mt-2.5 flex flex-wrap gap-2">
                   {m.actions.map(([label, href]) => (
@@ -101,7 +111,7 @@ function Ask() {
             <Send className="size-4" aria-hidden />
           </button>
         </form>
-        <AiNote>AI-made answers, saved so our compliance team can review them. Every answer uses your own numbers. WisBees never gives return guarantees or stock tips.</AiNote>
+        <AiNote>AI-made answers, saved with their sources so our compliance team can review them. Each answer is retrieved from your own numbers and what WisBees has published. We never give return guarantees or stock tips.</AiNote>
       </Card>
     </div>
   )

@@ -108,8 +108,8 @@ export function GoalChart({ points, target, startYear, endYear }: { points: numb
       <text x={X(points.length - 1)} y={H - 6} textAnchor="end" fontSize="10" className="fill-muted-foreground">
         {endYear}
       </text>
-      <line x1={l} x2={W - r} y1={Y(target)} y2={Y(target)} stroke="#c98a12" strokeWidth="2" strokeDasharray="6 5" />
-      <text x={W - r} y={Y(target) - 6} textAnchor="end" fontSize="11" fontWeight="700" fill="#c98a12">
+      <line x1={l} x2={W - r} y1={Y(target)} y2={Y(target)} stroke="var(--brand-amber)" strokeWidth="2" strokeDasharray="6 5" />
+      <text x={W - r} y={Y(target) - 6} textAnchor="end" fontSize="11" fontWeight="700" fill="var(--brand-amber-ink)">
         Goal {lakh(target)}
       </text>
       <polyline points={points.map((v, i) => `${X(i)},${Y(v)}`).join(' ')} fill="none" className="stroke-primary" strokeWidth="2.5" strokeLinejoin="round" />

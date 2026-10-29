@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-import { Calculator, ChartNoAxesCombined, Home, Landmark, PiggyBank, TrendingUp, Wallet, type LucideIcon } from 'lucide-react'
+import { Calculator, ChartNoAxesCombined, Home, Landmark, PiggyBank, Percent, Target, TrendingUp, Wallet, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 
 import { CALCULATORS } from '@/lib/calculators/registry'
@@ -14,6 +14,8 @@ const ICONS: Record<string, LucideIcon> = {
   'lumpsum-calculator': PiggyBank,
   'swp-calculator': Wallet,
   'emi-calculator': Home,
+  'goal-gap-calculator': Target,
+  'tax-loss-harvesting-calculator': Percent,
 }
 
 /** Jump between the calculators: one card each, scrolling sideways on a phone. */
@@ -28,7 +30,7 @@ export function CalculatorSwitcher({ activeSlug }: { activeSlug: string }) {
 
   return (
     <nav aria-label="Calculators" className="-mx-4 mt-8 sm:mx-0">
-      <ul ref={list} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-5">
+      <ul ref={list} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
         {CALCULATORS.map((c) => {
           const active = c.slug === activeSlug
           const Icon = ICONS[c.slug] ?? (c.slug.includes('loan') ? Landmark : Calculator)

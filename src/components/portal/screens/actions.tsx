@@ -65,6 +65,14 @@ function TodoCard({ todo: t, decision, onApprove }: { todo: Todo; decision?: 'ap
       <p className="bg-mist rounded-xl px-3.5 py-3 text-sm">
         <b>Why this?</b> {t.why}
       </p>
+      {t.explainer && (
+        <p className="text-sm">
+          <b>What this means:</b> {t.explainer.text}{' '}
+          <Link href={t.explainer.url} className="text-primary font-semibold whitespace-nowrap underline underline-offset-2">
+            {t.explainer.title}
+          </Link>
+        </p>
+      )}
       <dl className="grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-x-4 gap-y-2.5">
         {t.details.map(([k, v]) => (
           <div key={k}>

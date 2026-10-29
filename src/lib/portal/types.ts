@@ -25,6 +25,8 @@ export type Todo = {
   why: string
   details: [string, string][]
   risk: string
+  /** A plain-words explanation retrieved from the published knowledge, with where it came from. */
+  explainer?: { text: string; title: string; url: string }
 }
 
 export type AlertRow = { id: string; tone: 'good' | 'warn' | 'bad' | 'info' | 'grey'; title: string; body: string; when: string; href: string }
@@ -58,4 +60,6 @@ export type PortalData = {
   planLabel: string
   /** Port Scan copy is CMS-owned; only the pieces the dashboard needs. */
   bandLabel: string | null
+  /** The Copilot brief: lines read from the client's own facts, each with the screen that shows it. */
+  brief: { text: string; url: string }[]
 }

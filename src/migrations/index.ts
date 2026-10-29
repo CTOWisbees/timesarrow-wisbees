@@ -18,6 +18,7 @@ import * as migration_20261017_191214_storage_object_key from './20261017_191214
 import * as migration_20261023_062654_booking_preferred_at from './20261023_062654_booking_preferred_at';
 import * as migration_20261023_064519_highlights_orbit from './20261023_064519_highlights_orbit';
 import * as migration_20261025_090000_portal_data from './20261025_090000_portal_data';
+import * as migration_20261025_120000_ai_log_rag from './20261025_120000_ai_log_rag';
 
 export const migrations = [
   {
@@ -119,5 +120,10 @@ export const migrations = [
     up: migration_20261025_090000_portal_data.up,
     down: migration_20261025_090000_portal_data.down,
     name: '20261025_090000_portal_data',
+  },
+  {
+    up: migration_20261025_120000_ai_log_rag.up,
+    down: migration_20261025_120000_ai_log_rag.down,
+    name: '20261025_120000_ai_log_rag',
   },
 ];

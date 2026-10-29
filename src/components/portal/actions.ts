@@ -3,9 +3,12 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-import { COPILOT_VERSION, answerQuestion, type CopilotAnswer } from '@/lib/portal/copilot'
+import type { RagAnswer } from '@/lib/rag/answer'
+import { coachGoal } from '@/lib/rag/coach'
+import { getKnowledgeIndex } from '@/lib/rag/knowledge'
+import { askRag, RAG_VERSION } from '@/lib/rag/server'
 import { loadPortalData } from '@/lib/portal/load'
-import { createGoal, createTicket, deleteGoal, deletePortalData, logAnswer, saveDecision, updateGoal } from '@/lib/portal/store'
+import { createGoal, createTicket, deleteGoal, deletePortalData, listGoals, logAnswer, saveDecision, updateGoal } from '@/lib/portal/store'
 import { deleteUserData } from '@/lib/portfolio/server/store'
 import { DEMO_USER_ID } from '@/lib/portfolio/server/store'
 import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
@@ -87,14 +90,25 @@ export async function fileComplaint(input: unknown) {
   return { ok: true as const, ticket: `WB-${number}` }
 }
 
-/** Answers from the client's own numbers and keeps a log of every answer for compliance review. */
-export async function askCopilot(question: string): Promise<CopilotAnswer | { text: string; actions: []; intent: 'error'; handedOver: false }> {
+/** Answers with the RAG pipeline (the client's own facts plus published knowledge) and logs every answer for compliance review. */
+export async function askCopilot(question: string): Promise<RagAnswer> {
   const o = await owner()
   const q = String(question ?? '').trim().slice(0, 500)
-  if (!o || !q) return { text: 'Please sign in and type a question.', actions: [], intent: 'error', handedOver: false }
-  const answer = answerQuestion(q, await loadPortalData(o))
-  await logAnswer(o.id, q, answer.text, answer.intent, answer.handedOver, COPILOT_VERSION)
+  if (!o || !q) return { text: 'Please sign in and type a question.', sources: [], actions: [], intent: 'error', handedOver: false, confidence: 0, mode: 'none' }
+  const answer = await askRag(q, await loadPortalData(o))
+  await logAnswer(o.id, { question: q, answer: answer.text, intent: answer.intent, handedOver: answer.handedOver, version: RAG_VERSION, sources: answer.sources, confidence: answer.confidence, mode: answer.mode })
   return answer
+}
+
+/** The goal coach: the Copilot's words for one goal at the amount and growth rate the client is trying. */
+export async function coachGoalAction(goalId: string, monthly: number, annualReturn: number) {
+  const o = await owner()
+  if (!o) return null
+  const goal = (await listGoals(o.id)).find((g) => g.id === goalId)
+  if (!goal) return null
+  const m = Math.max(0, Math.min(10_000_000, Math.round(Number(monthly) || 0)))
+  const r = [0.08, 0.1, 0.12].includes(annualReturn) ? annualReturn : 0.1
+  return coachGoal(goal, m, r, await getKnowledgeIndex())
 }
 
 /** Deletes the client's saved portfolios, goals and answers. Complaints and the AI log are kept as compliance records. */

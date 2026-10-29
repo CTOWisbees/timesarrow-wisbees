@@ -1,3 +1,5 @@
+import { CLASS_COLORS } from '@/components/portfolio-scan/shared'
+
 import type { AlertRow, Goal, PortalData, Todo } from './types'
 
 /**
@@ -22,7 +24,7 @@ const sampleHoldings: SampleHolding[] = [
 
 const sampleTotal = sampleHoldings.reduce((s, h) => s + h.value, 0)
 
-const ASSET_COLOURS = { Shares: '#0e6b4e', Bonds: '#245a9e', Gold: '#c98a12', Cash: '#8a97a0' } as const
+const ASSET_COLOURS = { Shares: CLASS_COLORS.equity, Bonds: CLASS_COLORS.debt, Gold: CLASS_COLORS.gold, Cash: CLASS_COLORS.cash } as const
 
 /** Share of the total in each class now, against the plan chosen at the risk quiz. */
 const mixPlan: Record<keyof typeof ASSET_COLOURS, number> = { Shares: 65, Bonds: 20, Gold: 5, Cash: 10 }
@@ -191,5 +193,6 @@ export function buildSample(): PortalData {
     alerts: sampleAlerts.map((a, i): AlertRow => ({ id: `sample-${i}`, tone: ALERT_TONE[a.tone], title: a.title, body: a.body, when: a.when, href: a.href })),
     planLabel: 'Example plan',
     bandLabel: 'Good',
+    brief: [],
   }
 }

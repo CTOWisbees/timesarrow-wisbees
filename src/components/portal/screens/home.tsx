@@ -38,32 +38,45 @@ export function Home() {
         />
       ) : (
         <>
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            <Card>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Your total money</span>
-                <span className="text-muted-foreground text-sm">As of {asOfText(data.asOf)}</span>
+          <section className="from-primary to-brand-green-strong rounded-3xl bg-gradient-to-br p-6 text-white shadow-[0_10px_28px_rgb(15_107_76/0.25)] sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
+              <div className="min-w-0">
+                <p className="text-sm text-white/80">Your total money · as of {asOfText(data.asOf)}</p>
+                <div className="font-heading mt-1 text-4xl leading-none font-semibold tabular-nums sm:text-5xl">{rupees(data.total)}</div>
+                {data.yearlyReturn !== null && (
+                  <p className="mt-2 text-sm text-white/90">
+                    {data.yearlyReturn >= 0 ? '▲' : '▼'} {(Math.abs(data.yearlyReturn) * 100).toFixed(1)}% a year
+                    {data.benchmarkReturn !== null && ` · ${data.benchmarkName}: ${(data.benchmarkReturn * 100).toFixed(1)}%`}
+                  </p>
+                )}
               </div>
-              <div className="font-heading text-4xl leading-none font-semibold tabular-nums md:text-5xl">{rupees(data.total)}</div>
-              {data.yearlyReturn !== null && (
-                <div className={cn('font-semibold', data.yearlyReturn >= 0 ? 'text-[#1b7f4b]' : 'text-destructive')}>
-                  {data.yearlyReturn >= 0 ? '▲' : '▼'} {(Math.abs(data.yearlyReturn) * 100).toFixed(1)}% a year
-                  {data.benchmarkReturn !== null && <span className="text-muted-foreground font-normal"> · {data.benchmarkName}: {(data.benchmarkReturn * 100).toFixed(1)}%</span>}
-                </div>
-              )}
+              <dl className="grid grid-cols-3 gap-3 text-center sm:gap-4">
+                {[
+                  ['Health score', data.score ? String(data.score.value) : '–'],
+                  ['Fees a year', data.fees.yearly === null ? '–' : rupees(data.fees.yearly)],
+                  ['To do', String(openTodos)],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-2xl bg-white/12 px-3 py-2.5 sm:px-5">
+                    <dt className="text-xs text-white/75">{k}</dt>
+                    <dd className="font-heading text-xl font-semibold tabular-nums sm:text-2xl">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <Card>
+              <CardHead title={data.scoreHistory.length >= 2 ? 'Your health score over time' : 'Where your money is'} />
               {data.scoreHistory.length >= 2 ? (
-                <>
-                  <p className="text-muted-foreground text-sm">Your health score, check by check</p>
-                  <ScoreTrend history={data.scoreHistory} />
-                </>
+                <ScoreTrend history={data.scoreHistory} />
               ) : (
-                <div className="flex flex-wrap items-center gap-6 pt-2">
+                <div className="flex flex-wrap items-center gap-6 pt-1">
                   <MixDonut mix={data.mix} total={data.total} />
-                  <MixLegend mix={data.mix} />
+                  <MixLegend mix={data.mix} withPlan />
                 </div>
               )}
             </Card>
-
             <Brief />
           </div>
 
@@ -97,7 +110,7 @@ export function Home() {
 
       <GoalsStrip />
 
-      {data.hasPortfolio && (data.scoreHistory.length >= 2 || data.sample) && (
+      {data.hasPortfolio && data.scoreHistory.length >= 2 && (
         <Card>
           <CardHead title="Where your money is" />
           <div className="flex flex-wrap items-center gap-6">
@@ -112,24 +125,23 @@ export function Home() {
   )
 }
 
-/** A few lines written from the stored numbers; every line can be checked against a screen. */
+/** The Copilot brief: lines read from the client's own facts by the RAG, each linking to the screen that shows it. */
 function Brief() {
-  const { data, openTodos } = usePortal()
-  const shares = data.mix.find((m) => m.label === 'Shares')
-  const lines: string[] = []
-  lines.push(`You hold ${data.holdings.length} ${data.holdings.length === 1 ? 'investment' : 'investments'} worth ${rupees(data.total)}.`)
-  if (shares) lines.push(data.risk.equityLimit ? `Shares are ${shares.now}% of your money; your risk profile allows up to ${data.risk.equityLimit}%.` : `Shares are ${shares.now}% of your money.`)
-  const top = data.biggest[0]
-  if (top && top.share >= 10) lines.push(`${top.name} is ${top.share.toFixed(0)}% of everything you own.`)
-  if (data.fees.yearly) lines.push(`Your funds cost about ${rupees(data.fees.yearly)} a year in fees.`)
-  if (data.flagCount) lines.push(`${data.flagCount} ${data.flagCount === 1 ? 'thing stands' : 'things stand'} out in your Port Scan.`)
-  lines.push(openTodos ? `${openTodos} ${openTodos === 1 ? 'thing is' : 'things are'} waiting for your OK.` : 'Nothing is waiting for your OK.')
+  const { data } = usePortal()
   return (
     <section className="bg-mint flex flex-col gap-3 rounded-2xl p-5">
       <CardHead title="Your Copilot brief" right={<Pill>AI</Pill>} />
-      <ul className="flex list-disc flex-col gap-1.5 pl-5">
-        {lines.map((l) => (
-          <li key={l}>{l}</li>
+      <ul className="flex flex-col gap-2">
+        {data.brief.map((l) => (
+          <li key={l.text} className="flex gap-2">
+            <span className="bg-primary mt-2 size-1.5 shrink-0 rounded-full" aria-hidden />
+            <span>
+              {l.text}{' '}
+              <Link href={l.url} className="text-primary text-sm font-semibold whitespace-nowrap">
+                See
+              </Link>
+            </span>
+          </li>
         ))}
       </ul>
       <div className="flex flex-wrap gap-2.5">
@@ -140,7 +152,7 @@ function Brief() {
           Ask a question
         </Link>
       </div>
-      <AiNote>AI-made summary. Numbers come from the holdings you added and tested calculations.</AiNote>
+      <AiNote>AI-made brief, read from your own numbers and checked by our rules. Ask Copilot shows where each answer comes from.</AiNote>
     </section>
   )
 }

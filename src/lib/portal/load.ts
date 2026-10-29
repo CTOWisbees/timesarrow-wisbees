@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { findApplication } from '@/lib/applications'
-import { fill } from '@/components/portfolio-scan/shared'
+import { CLASS_COLORS, fill } from '@/components/portfolio-scan/shared'
 import type { AnalysisResult } from '@/lib/portfolio/analyze'
 import type { PortfolioInput } from '@/lib/portfolio/model'
 import { getPlan, getPortfolio, getViewer, latestResult, listAlerts, listPortfolios, scoreHistory } from '@/lib/portfolio/server/store'
@@ -9,12 +9,16 @@ import { getPortfolioScan } from '@/lib/queries'
 import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
 
 import { ASSUMED_RETURN, buildSample, NOW_YEAR } from './data'
+import { briefFor } from '@/lib/rag/brief'
+import { lead } from '@/lib/rag/answer'
+import { getKnowledgeIndex } from '@/lib/rag/knowledge'
+
 import { equityLimitFrom, shareLabel } from './derive'
 import { extraMonthlyNeeded, goalStatus, projectGoal, rebalanceAmount } from './math'
 import { listDecisions, listGoals } from './store'
 import type { AlertRow, Goal, Holding, MixRow, PortalData, Todo } from './types'
 
-const ASSET_COLOURS = { Shares: '#0e6b4e', Bonds: '#245a9e', Gold: '#c98a12', Cash: '#8a97a0', Other: '#6d5bd0' } as const
+const ASSET_COLOURS = { Shares: CLASS_COLORS.equity, Bonds: CLASS_COLORS.debt, Gold: CLASS_COLORS.gold, Cash: CLASS_COLORS.cash, Other: CLASS_COLORS.other } as const
 const KIND: Record<string, string> = { equity: 'Stock', mutual_fund: 'Mutual fund', etf: 'ETF', bond: 'Bond', cash: 'Cash' }
 const SUB_LABEL: Record<string, string> = {
   diversification: 'Spread of investments',
@@ -39,6 +43,23 @@ export type Owner = { id: string; name: string } | null
  * mode a client with no portfolio sees the example family instead; in production there is no sample.
  */
 export async function loadPortalData(owner: Owner): Promise<PortalData> {
+  return withCopilot(await loadBase(owner))
+}
+
+const EXPLAIN_QUERY = { rebalance: 'bringing your mix back to plan rebalance shares limit', harvest: 'saving tax on a loss tax-loss harvesting', sip: 'how goal projections work close the gap' } as const
+
+/** Adds what the Copilot writes: the brief from the client's facts, and an explainer for each suggestion retrieved from published knowledge. */
+async function withCopilot(data: PortalData): Promise<PortalData> {
+  const knowledge = await getKnowledgeIndex()
+  const todos = data.todos.map((t) => {
+    const hit = knowledge.search(EXPLAIN_QUERY[t.kind], 1)[0]?.chunk
+    return hit ? { ...t, explainer: { text: lead(hit.text, 320), title: hit.title, url: hit.url } } : t
+  })
+  const next = { ...data, todos }
+  return { ...next, brief: briefFor(next).lines }
+}
+
+async function loadBase(owner: Owner): Promise<PortalData> {
   const empty = emptyData()
   if (!owner) return demoModeEnabled() ? buildSample() : empty
 
@@ -142,6 +163,7 @@ function emptyData(): PortalData {
     alerts: [],
     planLabel: 'Free plan',
     bandLabel: null,
+    brief: [],
   }
 }
 
