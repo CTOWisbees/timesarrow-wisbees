@@ -87,13 +87,21 @@ chatbot) build on this same app.
 
 ## Client dashboard (Bees Copilot) — `/dashboard`
 - Lives in the `(portal)` route group (own root layout, no site header/footer, never indexed). One route,
-  `dashboard/[[...section]]`, maps to the screens in `src/components/portal/screens/` (home, money, goals, to-do,
-  invest, activity, tax, ask, talk, learn, documents, family, plan, privacy, help, alerts).
-- **Sample data for now.** `src/lib/portal/data.ts` is an example family until Account Aggregator, CAMS/KFintech and
-  broker links exist; the page says so. Replace it screen by screen with real reads.
-- Rules from the BRD: software calculates (`src/lib/portal/math.ts`, unit tested), AI only explains; nothing is placed
-  without a one-tap client approval (the confirm dialog); AI disclosure on every Copilot output; client approves, WisBees
-  never moves money. Release 2 items (automated execution, TLH engine, family invites) are UI previews only.
+  `dashboard/[[...section]]`, maps to the screens in `src/components/portal/screens/`.
+- **Real data.** `src/lib/portal/load.ts` builds `PortalData` for the signed-in client from their newest Port Scan
+  portfolio and its latest result (`scan.*`), the risk profile on their application (category and equity limit only,
+  never the numeric score), their goals, answers and alerts. Layout loads it once; screens read it via `usePortal()`.
+  With no portfolio, screens show an empty state pointing to Port Scan. Only local demo mode with no portfolio falls
+  back to the example family in `src/lib/portal/data.ts` (`buildSample`).
+- Dashboard tables live in the `portal` schema (migration `20261025_090000_portal_data`): `goals`, `decisions`,
+  `tickets` (grievances, numbered WB-n) and `ai_log` (every Copilot answer, with the rules version). RLS on, server only.
+  Deleting a user's data keeps tickets and the AI log (compliance records).
+- Suggestions (To Do) are derived from real numbers: equity above the risk limit, holdings below cost, goals behind.
+  Ids are stable so an answer sticks. **Approving only records the decision**: WisBees places no orders.
+- Copilot (`src/lib/portal/copilot.ts`) is rules over the client's own numbers, not free text: advice-like questions
+  are handed to the adviser, and every answer is logged. Maths is in `math.ts`, unit tested.
+- Not real yet: Account Aggregator, CAMS/KFintech and broker links, adviser chat, documents, family invites, invoices,
+  automated execution (Release 2). Those screens say so instead of showing sample figures.
 - `/fees` and `/ai-disclosure` are public pages whose copy still needs BASL approval before indexing.
 
 ## Roadmap hooks

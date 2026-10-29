@@ -120,3 +120,20 @@ export function lakh(n: number) {
   if (n >= 100_000) return `₹${trim(n / 100_000)} lakh`
   return rupees(n)
 }
+
+/** Shown where a screen has nothing real to show yet: says why and what to do next. */
+export function EmptyState({ title, body, href, cta }: { title: string; body: string; href?: string; cta?: string }) {
+  return (
+    <Card className="items-start">
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="text-muted-foreground max-w-xl">{body}</p>
+      {href && cta && (
+        <Link href={href} className={btn.primary}>
+          {cta}
+        </Link>
+      )}
+    </Card>
+  )
+}
+
+export const asOfText = (iso: string | null) => (iso ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso)) : '')

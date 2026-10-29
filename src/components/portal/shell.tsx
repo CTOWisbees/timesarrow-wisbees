@@ -30,6 +30,9 @@ import { useEffect, useRef, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import type { Ticket } from '@/lib/portal/store'
+import type { PortalData } from '@/lib/portal/types'
+
 import { PortalProvider, usePortal } from './state'
 
 type Item = { slug: string; label: string; icon: LucideIcon; keywords?: string }
@@ -90,10 +93,10 @@ function useSection() {
   return slug
 }
 
-export function PortalShell({ name, planLabel, children }: { name: string; planLabel: string; children: React.ReactNode }) {
+export function PortalShell({ name, data, tickets, children }: { name: string; data: PortalData; tickets: Ticket[]; children: React.ReactNode }) {
   return (
-    <PortalProvider name={name}>
-      <Frame name={name} planLabel={planLabel}>
+    <PortalProvider name={name} data={data} tickets={tickets}>
+      <Frame name={name} planLabel={data.planLabel}>
         {children}
       </Frame>
     </PortalProvider>
@@ -102,7 +105,7 @@ export function PortalShell({ name, planLabel, children }: { name: string; planL
 
 function Frame({ name, planLabel, children }: { name: string; planLabel: string; children: React.ReactNode }) {
   const slug = useSection()
-  const { openTodos, toast } = usePortal()
+  const { openTodos, toast, data } = usePortal()
   const main = useRef<HTMLDivElement>(null)
   const [searching, setSearching] = useState(false)
   const title = ALL.find((i) => i.slug === slug)?.label ?? EXTRA_TITLES[slug] ?? 'Home'
@@ -168,7 +171,7 @@ function Frame({ name, planLabel, children }: { name: string; planLabel: string;
         </button>
         <Link href="/dashboard/alerts" aria-label="Alerts" className={iconBtn}>
           <Bell className="size-5" aria-hidden />
-          <span className="bg-destructive absolute top-2 right-2.5 size-2 rounded-full" />
+          {data.alerts.length > 0 && <span className="bg-destructive absolute top-2 right-2.5 size-2 rounded-full" />}
         </Link>
       </header>
 
@@ -216,6 +219,7 @@ function Frame({ name, planLabel, children }: { name: string; planLabel: string;
 const iconBtn = 'border-border bg-card relative flex size-10 shrink-0 items-center justify-center rounded-full border hover:bg-mint/60'
 
 function HeaderActions({ onSearch }: { onSearch: () => void }) {
+  const { data } = usePortal()
   return (
     <>
       <button type="button" onClick={onSearch} aria-label="Search" className={iconBtn}>
@@ -227,7 +231,7 @@ function HeaderActions({ onSearch }: { onSearch: () => void }) {
       </Link>
       <Link href="/dashboard/alerts" aria-label="Alerts" className={iconBtn}>
         <Bell className="size-5" aria-hidden />
-        <span className="bg-destructive absolute top-2 right-2.5 size-2 rounded-full" />
+        {data.alerts.length > 0 && <span className="bg-destructive absolute top-2 right-2.5 size-2 rounded-full" />}
       </Link>
       <Link href="/portfolio-scan" aria-label="Back to the website" className={cn(iconBtn, 'w-auto px-3 text-sm font-semibold')}>
         <BadgeIndianRupee className="mr-1.5 size-4" aria-hidden />

@@ -1,9 +1,9 @@
-import { ASSET_COLOURS, mix, totalValue, trend, trendMonths } from '@/lib/portal/data'
+import type { MixRow } from '@/lib/portal/types'
 
 import { lakh } from './ui'
 
 /** Ring of the money by type, with the total in the middle. */
-export function MixDonut({ size = 150 }: { size?: number }) {
+export function MixDonut({ mix, total, size = 150 }: { mix: MixRow[]; total: number; size?: number }) {
   const r = 54
   const c = 2 * Math.PI * r
   const offsets = mix.map((_, i) => mix.slice(0, i).reduce((sum, m) => sum + (c * m.now) / 100, 0))
@@ -19,62 +19,60 @@ export function MixDonut({ size = 150 }: { size?: number }) {
         Total
       </text>
       <text x="70" y="84" textAnchor="middle" fontSize="12" fontWeight="700" className="fill-ink">
-        {lakh(totalValue)}
+        {lakh(total)}
       </text>
     </svg>
   )
 }
 
-export function MixLegend({ withPlan }: { withPlan?: boolean }) {
+export function MixLegend({ mix, withPlan }: { mix: MixRow[]; withPlan?: boolean }) {
   return (
     <ul className="flex min-w-40 flex-1 flex-col gap-2">
       {mix.map((m) => (
         <li key={m.label} className="flex items-center gap-2.5">
           <i className="size-3 shrink-0 rounded-[3px]" style={{ background: m.colour }} />
           {m.label}
-          <b className="ml-auto tabular-nums">{withPlan ? `${m.now}% now · plan ${m.plan}%` : `${m.now}%`}</b>
+          <b className="ml-auto tabular-nums">{withPlan && m.plan !== null ? `${m.now}% now · limit ${m.plan}%` : `${m.now}%`}</b>
         </li>
       ))}
     </ul>
   )
 }
 
-/** Total money over the last twelve months. */
-export function TrendLine() {
+/** The health score over time: one point per Port Scan check. */
+export function ScoreTrend({ history }: { history: { date: string; score: number }[] }) {
   const W = 560
-  const H = 190
-  const l = 44
+  const H = 170
+  const l = 36
   const b = 26
   const t = 10
   const r = 14
-  const mn = 24
-  const mx = 31
-  const X = (i: number) => l + (i * (W - l - r)) / (trend.length - 1)
-  const Y = (v: number) => t + (H - t - b) * (1 - (v - mn) / (mx - mn))
-  const pts = trend.map((v, i) => `${X(i)},${Y(v)}`).join(' ')
+  const X = (i: number) => l + (i * (W - l - r)) / Math.max(1, history.length - 1)
+  const Y = (v: number) => t + (H - t - b) * (1 - v / 100)
+  const pts = history.map((h, i) => `${X(i)},${Y(h.score)}`).join(' ')
+  const fmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' })
+  const first = history[0]
+  const last = history[history.length - 1]
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Your total money over the last 12 months, rising from 24.5 lakh to 30.2 lakh">
-        {[25, 27.5, 30].map((g) => (
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Your health score over time, from ${first.score} to ${last.score}`}>
+        {[0, 50, 100].map((g) => (
           <g key={g}>
             <line x1={l} x2={W - r} y1={Y(g)} y2={Y(g)} className="stroke-border" />
             <text x={l - 8} y={Y(g) + 4} textAnchor="end" fontSize="11" className="fill-muted-foreground">
-              ₹{g}L
+              {g}
             </text>
           </g>
         ))}
-        {trendMonths.map((m, i) =>
-          m ? (
-            <text key={i} x={X(i)} y={H - 6} textAnchor="middle" fontSize="11" className="fill-muted-foreground">
-              {m}
-            </text>
-          ) : null,
-        )}
-        <polygon points={`${X(0)},${Y(mn)} ${pts} ${X(trend.length - 1)},${Y(mn)}`} className="fill-primary" opacity=".12" />
+        <text x={X(0)} y={H - 6} textAnchor="start" fontSize="11" className="fill-muted-foreground">
+          {fmt.format(new Date(first.date))}
+        </text>
+        <text x={X(history.length - 1)} y={H - 6} textAnchor="end" fontSize="11" className="fill-muted-foreground">
+          {fmt.format(new Date(last.date))}
+        </text>
         <polyline points={pts} fill="none" className="stroke-primary" strokeWidth="2.5" strokeLinejoin="round" />
-        <circle cx={X(trend.length - 1)} cy={Y(trend[trend.length - 1])} r="5" className="fill-primary" />
+        <circle cx={X(history.length - 1)} cy={Y(last.score)} r="5" className="fill-primary" />
       </svg>
-      <p className="text-muted-foreground text-xs">L = lakh rupees, last 12 months</p>
     </div>
   )
 }
@@ -119,5 +117,3 @@ export function GoalChart({ points, target, startYear, endYear }: { points: numb
     </svg>
   )
 }
-
-export { ASSET_COLOURS }

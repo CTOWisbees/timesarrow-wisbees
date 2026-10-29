@@ -7,7 +7,6 @@ import { GoalDetail, GoalsList } from '@/components/portal/screens/goals'
 import { Home } from '@/components/portal/screens/home'
 import { Money } from '@/components/portal/screens/money'
 import { Support } from '@/components/portal/screens/support'
-import { goals } from '@/lib/portal/data'
 
 type Params = Promise<{ section?: string[] }>
 
@@ -24,7 +23,7 @@ export default async function DashboardPage({ params }: { params: Params }) {
       return <Money />
     case 'goals':
       if (!id) return <GoalsList />
-      return goals.some((g) => g.id === id) ? <GoalDetail id={id} /> : notFound()
+      return <GoalDetail id={id} />
     case 'todo':
     case 'invest':
     case 'activity':

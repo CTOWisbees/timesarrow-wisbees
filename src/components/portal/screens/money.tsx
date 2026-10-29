@@ -1,37 +1,61 @@
 'use client'
 
 import { Link2 } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 
-import { fundCosts, holdings, mix, overlap, totalValue, assetValue } from '@/lib/portal/data'
 import { hasDrifted, stressTest } from '@/lib/portal/math'
+import type { PortalData } from '@/lib/portal/types'
 import { cn } from '@/lib/utils'
 
 import { MixDonut, MixLegend } from '../charts'
-import { Bar, Card, CardHead, Disclaimer, IconBox, lakh, PageHead, Pill, rupees, Stat } from '../ui'
+import { usePortal } from '../state'
+import { asOfText, Bar, btn, Card, CardHead, Disclaimer, EmptyState, IconBox, lakh, PageHead, Pill, rupees, Stat } from '../ui'
 
 const TABS = [
   ['all', 'All holdings'],
   ['mix', 'Mix and checks'],
-  ['cost', 'Costs and overlap'],
+  ['cost', 'Costs and concentration'],
   ['stress', 'What if?'],
-  ['add', 'Add accounts'],
+  ['add', 'Update accounts'],
 ] as const
 
 type Tab = (typeof TABS)[number][0]
 
+const RISK_WORD = { low: 'Low', moderate: 'Medium', high: 'High', very_high: 'Very high' } as const
+
 export function Money() {
+  const { data } = usePortal()
   const [tab, setTab] = useState<Tab>('all')
-  const fees = fundCosts.reduce((s, f) => s + f.rupees, 0)
+
+  if (!data.hasPortfolio)
+    return (
+      <>
+        <PageHead title="My Money" sub="Everything you own, in one place." />
+        <EmptyState title="Nothing here yet" body="Add your holdings in Port Scan, from a statement or by hand, and they show up here with your mix, costs and risk." href="/portfolio-scan" cta="Run a Port Scan" />
+      </>
+    )
+
+  const shares = data.mix.find((m) => m.label === 'Shares')
+  const withinLimit = data.risk.equityLimit === null || !shares ? null : shares.now <= data.risk.equityLimit + 3
 
   return (
     <>
-      <PageHead title="My Money" sub="Everything you own, in one place." />
+      <PageHead title="My Money" sub={`Everything you added, as of ${asOfText(data.asOf)}.`} />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Total money" value={lakh(totalValue)} />
-        <Stat label="Yearly return" value="11.2%" tone="up" sub="Nifty 50: 10.4%" />
-        <Stat label="Fees you pay each year" value={rupees(fees)} />
-        <Stat label="Risk level" value="Medium" sub={<Pill tone="good">Within your comfort</Pill>} />
+        <Stat label="Total money" value={lakh(data.total)} />
+        <Stat
+          label="Yearly return"
+          value={data.yearlyReturn === null ? 'Not enough data' : `${(data.yearlyReturn * 100).toFixed(1)}%`}
+          tone={data.yearlyReturn === null ? undefined : data.yearlyReturn >= 0 ? 'up' : 'down'}
+          sub={data.benchmarkReturn !== null ? `${data.benchmarkName}: ${(data.benchmarkReturn * 100).toFixed(1)}%` : undefined}
+        />
+        <Stat label="Fees you pay each year" value={data.fees.yearly === null ? '–' : rupees(data.fees.yearly)} />
+        <Stat
+          label="Risk level"
+          value={data.volatility ? RISK_WORD[data.volatility] : '–'}
+          sub={withinLimit === null ? undefined : <Pill tone={withinLimit ? 'good' : 'warn'}>{withinLimit ? 'Within your comfort' : 'Above your comfort'}</Pill>}
+        />
       </div>
 
       <div className="bg-mint inline-flex max-w-full flex-wrap gap-0.5 self-start rounded-xl p-1" role="group" aria-label="View">
@@ -42,17 +66,17 @@ export function Money() {
         ))}
       </div>
 
-      {tab === 'all' && <All />}
-      {tab === 'mix' && <MixTab />}
-      {tab === 'cost' && <Costs fees={fees} />}
-      {tab === 'stress' && <Stress />}
+      {tab === 'all' && <All data={data} />}
+      {tab === 'mix' && <MixTab data={data} />}
+      {tab === 'cost' && <Costs data={data} />}
+      {tab === 'stress' && <Stress data={data} />}
       {tab === 'add' && <Accounts />}
       <Disclaimer />
     </>
   )
 }
 
-function All() {
+function All({ data }: { data: PortalData }) {
   return (
     <Card flat>
       <div className="overflow-x-auto">
@@ -60,23 +84,22 @@ function All() {
           <thead>
             <tr className="text-muted-foreground text-left text-xs font-semibold">
               <th className="px-5 py-3">What you own</th>
-              <th className="px-5 py-3">Type</th>
               <th className="px-5 py-3 text-right">Worth now</th>
+              <th className="px-5 py-3 text-right">Share</th>
               <th className="px-5 py-3 text-right">Gain or loss</th>
             </tr>
           </thead>
           <tbody>
-            {holdings.map((h) => (
+            {data.holdings.map((h) => (
               <tr key={h.name} className="border-t">
                 <td className="px-5 py-3">
                   <div className="font-semibold">{h.name}</div>
                   <div className="text-muted-foreground">{h.kind}</div>
                 </td>
-                <td className="px-5 py-3">{h.asset}</td>
                 <td className="px-5 py-3 text-right tabular-nums">{rupees(h.value)}</td>
-                <td className={cn('px-5 py-3 text-right tabular-nums', h.gainPct >= 0 ? 'text-[#1b7f4b]' : 'text-destructive')}>
-                  {h.gainPct >= 0 ? '+' : ''}
-                  {h.gainPct}%
+                <td className="px-5 py-3 text-right tabular-nums">{h.weight.toFixed(1)}%</td>
+                <td className={cn('px-5 py-3 text-right tabular-nums', h.gainPct === null ? 'text-muted-foreground' : h.gainPct >= 0 ? 'text-[#1b7f4b]' : 'text-destructive')}>
+                  {h.gainPct === null ? 'Cost not added' : `${h.gainPct >= 0 ? '+' : ''}${h.gainPct.toFixed(1)}%`}
                 </td>
               </tr>
             ))}
@@ -87,109 +110,128 @@ function All() {
   )
 }
 
-function MixTab() {
+function MixTab({ data }: { data: PortalData }) {
+  const top = data.biggest[0]
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <Card>
         <CardHead title="Your money by type" />
         <div className="flex flex-wrap items-center gap-6">
-          <MixDonut />
-          <MixLegend />
+          <MixDonut mix={data.mix} total={data.total} />
+          <MixLegend mix={data.mix} withPlan />
         </div>
-        <h4 className="font-sans text-base font-semibold">Plan vs now</h4>
-        {mix.map((m) => (
-          <div key={m.label}>
-            <div className="flex justify-between text-sm">
-              <span>{m.label}</span>
-              <span className="tabular-nums">
-                now {m.now}% · plan {m.plan}%
-              </span>
-            </div>
-            <div className="relative">
-              <Bar pct={m.now} warn={hasDrifted(m)} />
-              <u className="bg-ink absolute -top-0.5 -bottom-0.5 w-[3px] rounded-sm no-underline" style={{ left: `${m.plan}%` }} />
-            </div>
-          </div>
-        ))}
-        <p className="text-muted-foreground text-sm">The black mark is your plan. Amber means it has drifted.</p>
+        {data.risk.equityLimit !== null && (
+          <>
+            <h4 className="font-sans text-base font-semibold">Shares against your limit</h4>
+            {data.mix
+              .filter((m) => m.plan !== null)
+              .map((m) => (
+                <div key={m.label}>
+                  <div className="flex justify-between text-sm">
+                    <span>{m.label}</span>
+                    <span className="tabular-nums">
+                      now {m.now}% · limit {m.plan}%
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Bar pct={m.now} warn={hasDrifted({ label: m.label, now: m.now, plan: m.plan ?? m.now })} />
+                    <u className="bg-ink absolute -top-0.5 -bottom-0.5 w-[3px] rounded-sm no-underline" style={{ left: `${m.plan}%` }} />
+                  </div>
+                </div>
+              ))}
+            <p className="text-muted-foreground text-sm">
+              The black mark is the most shares your risk profile{data.risk.category ? ` (${data.risk.category})` : ''} allows. Amber means you are past it.
+            </p>
+          </>
+        )}
       </Card>
       <Card>
         <CardHead title="Things worth a look" />
         <div className="flex flex-col gap-3.5">
-          <div>
-            <Pill tone="warn">Too much in one place</Pill>
-            <p className="mt-1.5 text-sm">HDFC Bank appears in 3 of your holdings (directly and inside 2 funds). Together that is about 10% of your money.</p>
-          </div>
-          <div>
-            <Pill tone="info">Doing the same job</Pill>
-            <p className="mt-1.5 text-sm">Two of your funds hold many of the same large companies. You may not need both.</p>
-          </div>
-          <div>
-            <Pill tone="good">Costs</Pill>
-            <p className="mt-1.5 text-sm">Your funds cost about ₹9,100 a year in fees. All are low-cost direct plans.</p>
-          </div>
+          {top && top.share >= 10 && (
+            <div>
+              <Pill tone={top.share >= 20 ? 'warn' : 'info'}>Biggest holding</Pill>
+              <p className="mt-1.5 text-sm">
+                {top.name} is {top.share.toFixed(0)}% of everything you own. {top.share >= 20 ? 'That is a lot in one place.' : 'Worth keeping an eye on.'}
+              </p>
+            </div>
+          )}
+          {data.fees.regularShare !== null && data.fees.regularShare > 0 && (
+            <div>
+              <Pill tone="warn">Regular plans</Pill>
+              <p className="mt-1.5 text-sm">About {(data.fees.regularShare * 100).toFixed(0)}% of your fund money is in regular plans. The direct plan of the same fund costs less each year.</p>
+            </div>
+          )}
+          {data.losses.length > 0 && (
+            <div>
+              <Pill tone="info">Below what you paid</Pill>
+              <p className="mt-1.5 text-sm">
+                {data.losses.length} {data.losses.length === 1 ? 'holding is' : 'holdings are'} worth less than you paid. See Save Tax.
+              </p>
+            </div>
+          )}
+          {data.flagCount > 0 && (
+            <div>
+              <Pill tone="grey">Port Scan</Pill>
+              <p className="mt-1.5 text-sm">
+                {data.flagCount} {data.flagCount === 1 ? 'thing stands' : 'things stand'} out. <Link href="/portfolio" className="text-primary font-semibold">See them</Link>
+              </p>
+            </div>
+          )}
+          {!(top && top.share >= 10) && !data.flagCount && !data.losses.length && <p className="text-muted-foreground text-sm">Nothing stands out right now.</p>}
         </div>
       </Card>
     </div>
   )
 }
 
-function Costs({ fees }: { fees: number }) {
+function Costs({ data }: { data: PortalData }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <Card flat>
-        <div className="px-5 pt-5 pb-2">
-          <h3 className="text-lg font-semibold">What your funds cost</h3>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-muted-foreground text-left text-xs font-semibold">
-              <th className="px-5 py-2.5">Fund</th>
-              <th className="px-5 py-2.5 text-right">Yearly fee</th>
-              <th className="px-5 py-2.5 text-right">Rupees a year</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fundCosts.map((f) => (
-              <tr key={f.fund} className="border-t">
-                <td className="px-5 py-2.5 font-semibold">{f.fund}</td>
-                <td className="px-5 py-2.5 text-right tabular-nums">{f.ratio.toFixed(2)}%</td>
-                <td className="px-5 py-2.5 text-right tabular-nums">{rupees(f.rupees)}</td>
-              </tr>
-            ))}
-            <tr className="border-t font-bold">
-              <td className="px-5 py-2.5">Total</td>
-              <td />
-              <td className="px-5 py-2.5 text-right tabular-nums">{rupees(fees)}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p className="text-muted-foreground px-5 py-3 text-sm">
-          All are direct plans. Regular plans of the same funds usually cost about 0.5 to 1% more each year. That is roughly ₹12,000 a year you avoid (estimate).
-        </p>
+      <Card>
+        <CardHead title="What your funds cost" />
+        {data.fees.yearly === null ? (
+          <p className="text-muted-foreground">Fund fees could not be read from what you added. Search for each fund by name in Port Scan so we can use its published yearly cost.</p>
+        ) : (
+          <>
+            <div className="font-heading text-4xl font-semibold tabular-nums">{rupees(data.fees.yearly)}</div>
+            <p className="text-muted-foreground text-sm">a year{data.fees.weightedTer !== null ? `, an average of ${data.fees.weightedTer.toFixed(2)}% of your fund money` : ''}.</p>
+            <p className="text-sm">
+              {data.fees.regularShare ? (
+                <>
+                  <Pill tone="warn">Regular plans</Pill> {(data.fees.regularShare * 100).toFixed(0)}% of your fund money pays a distributor commission. Direct plans usually cost about 0.5 to 1% less each year.
+                </>
+              ) : (
+                <>
+                  <Pill tone="good">Direct plans</Pill> No commission found in what you added.
+                </>
+              )}
+            </p>
+          </>
+        )}
       </Card>
       <Card>
-        <CardHead title="Same company in many places" />
-        {overlap.map((o) => (
-          <div key={o.name} className="flex items-center gap-3 py-1">
+        <CardHead title="Your biggest holdings" />
+        {data.biggest.map((b) => (
+          <div key={b.name} className="flex items-center gap-3 py-1">
             <div className="min-w-0 flex-1">
-              <div className="font-semibold">{o.name}</div>
-              <div className="text-muted-foreground text-sm">in {o.where}</div>
+              <div className="truncate font-semibold">{b.name}</div>
+              <div className="text-muted-foreground text-sm">{b.kind}</div>
             </div>
-            <Pill tone={o.flag ? 'warn' : 'good'}>{o.share}% of your money</Pill>
+            <Pill tone={b.share >= 20 ? 'warn' : b.share >= 10 ? 'info' : 'good'}>{b.share.toFixed(0)}% of your money</Pill>
           </div>
         ))}
-        <p className="text-muted-foreground text-sm">We flag a name when it passes 10% of your money. Owning it directly and through funds counts together.</p>
+        <p className="text-muted-foreground text-sm">We flag a single holding past 20%. Funds that already hold many companies are counted as one holding here.</p>
       </Card>
     </div>
   )
 }
 
-function Stress() {
+function Stress({ data }: { data: PortalData }) {
   const [fall, setFall] = useState(20)
-  const shares = assetValue('Shares')
-  const bonds = assetValue('Bonds')
-  const r = stressTest({ shares, bonds, total: totalValue }, fall)
+  const shares = ((data.mix.find((m) => m.label === 'Shares')?.now ?? 0) / 100) * data.total
+  const bonds = ((data.mix.find((m) => m.label === 'Bonds')?.now ?? 0) / 100) * data.total
+  const r = stressTest({ shares, bonds, total: data.total }, fall)
   return (
     <Card>
       <CardHead title="What if markets fall?" />
@@ -202,42 +244,53 @@ function Stress() {
       <div className="grid gap-4 md:grid-cols-3">
         <Stat label="Your total money would be" value={lakh(r.left)} />
         <Stat label="Change" value={`−${lakh(r.loss)}`} tone="down" />
-        <Stat label="Emergency fund" value="Not affected" tone="up" />
+        <Stat label="Change in your money" value={`−${r.lossPct.toFixed(1)}%`} />
       </div>
-      <p className="text-muted-foreground text-sm">
-        Past big falls: Nifty 50 dropped about 60% in 2008 and about 38% in early 2020, then recovered over time. Bonds and cash usually fall less. Nothing here is a prediction.
-      </p>
+      <p className="text-muted-foreground text-sm">Bonds are assumed to fall a fifth as much as shares; gold and cash are left unchanged. Nothing here is a prediction.</p>
     </Card>
   )
 }
 
 function Accounts() {
-  const rows = [
-    ['Bank accounts', "Link securely through RBI's Account Aggregator", 'Linked'],
-    ['Mutual funds', 'Pulled from CAMS and KFintech', 'Linked'],
-    ['Stocks (demat)', 'Connect your broker', 'Linked'],
-    ['Insurance', 'Link your policies to see cover', 'Not linked'],
-    ['Property, gold at home, loans you gave', 'Type it in yourself', 'Add by hand'],
-    ['Upload a statement', 'PDF from your bank or fund house. We read it, you confirm.', 'Upload'],
+  const rows: [string, string, string, string?][] = [
+    ['Statement upload', 'A CAS PDF or a broker file. We read it in your browser, you confirm it.', 'Available', '/portfolio-scan'],
+    ['Type holdings in', 'Search a fund or stock, or paste from Excel.', 'Available', '/portfolio-scan'],
+    ['Bank accounts (Account Aggregator)', 'Link securely through RBI’s Account Aggregator.', 'Coming soon'],
+    ['CAMS and KFintech', 'Pull your mutual funds in one step.', 'Coming soon'],
+    ['Broker link', 'Connect your demat account.', 'Coming soon'],
   ]
   return (
     <Card>
-      <CardHead title="Add another account" />
-      <p className="text-muted-foreground">Link your accounts so everything shows in one place. You choose what to share and can stop sharing any time.</p>
+      <CardHead title="Keep your holdings up to date" />
+      <p className="text-muted-foreground">Today your numbers come from what you add in Port Scan. Re-run it whenever your holdings change. Automatic linking is on the way.</p>
       <div className="grid gap-3 md:grid-cols-2">
-        {rows.map(([t, s, st]) => (
-          <div key={t} className="flex items-center gap-3.5 rounded-xl border px-4 py-3.5">
-            <IconBox>
-              <Link2 className="size-5" aria-hidden />
-            </IconBox>
-            <div className="min-w-0 flex-1">
-              <div className="font-semibold">{t}</div>
-              <div className="text-muted-foreground text-sm">{s}</div>
+        {rows.map(([t, s, st, href]) => {
+          const body = (
+            <>
+              <IconBox>
+                <Link2 className="size-5" aria-hidden />
+              </IconBox>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold">{t}</div>
+                <div className="text-muted-foreground text-sm">{s}</div>
+              </div>
+              <Pill tone={st === 'Available' ? 'good' : 'grey'}>{st}</Pill>
+            </>
+          )
+          return href ? (
+            <Link key={t} href={href} className="hover:border-primary flex items-center gap-3.5 rounded-xl border px-4 py-3.5 transition-colors">
+              {body}
+            </Link>
+          ) : (
+            <div key={t} className="flex items-center gap-3.5 rounded-xl border px-4 py-3.5 opacity-80">
+              {body}
             </div>
-            <Pill tone={st === 'Linked' ? 'good' : 'grey'}>{st}</Pill>
-          </div>
-        ))}
+          )
+        })}
       </div>
+      <Link href="/portfolio-scan" className={cn(btn.primary, 'self-start')}>
+        Update my holdings
+      </Link>
     </Card>
   )
 }

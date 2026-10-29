@@ -1,15 +1,15 @@
 'use client'
 
-import { Bell, BookOpen, CalendarDays, ChevronRight, CreditCard, FileText, HelpCircle, Lock, LifeBuoy, MessageCircle, Percent, Phone, Send, TrendingUp, Users } from 'lucide-react'
+import { Bell, BookOpen, CalendarDays, ChevronRight, CreditCard, FileText, Lock, LifeBuoy, MessageCircle, Percent, Phone, Send, TrendingUp, Users } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 
-import { alerts, ASSUMED_RETURN, consultations, glossary, goals, learnItems, NOW_YEAR } from '@/lib/portal/data'
-import { projectGoal } from '@/lib/portal/math'
+import { consultations, glossary } from '@/lib/portal/data'
 import { cn } from '@/lib/utils'
 
-import { AiNote, btn, Card, CardHead, Disclaimer, IconBox, lakh, PageHead, Pill, Row, rupees } from '../ui'
+import { askCopilot, fileComplaint } from '../actions'
 import { usePortal } from '../state'
+import { AiNote, btn, Card, CardHead, Disclaimer, EmptyState, IconBox, PageHead, Pill, Row } from '../ui'
 
 export function Support({ screen }: { screen: 'ask' | 'talk' | 'learn' | 'help' | 'alerts' | 'more' }) {
   switch (screen) {
@@ -30,41 +30,16 @@ export function Support({ screen }: { screen: 'ask' | 'talk' | 'learn' | 'help' 
 
 type Msg = { from: 'me' | 'bot'; text: string; actions?: [string, string][] }
 
-const retirement = goals[0]
-const retProjection = projectGoal({ saved: retirement.saved, monthly: retirement.monthly, annualReturn: ASSUMED_RETURN, years: retirement.year - NOW_YEAR }).value
-
-/** Scripted answers read from the same numbers the dashboard shows. Anything advice-like goes to the adviser. */
-function answer(q: string): Pick<Msg, 'text' | 'actions'> {
-  const l = q.toLowerCase()
-  if (/week|fall|fell|change|why/.test(l))
-    return { text: 'Your money grew 0.7% (₹21,400) this week. Most of the rise came from your two index and flexi-cap funds. Infosys was down 1.2%.', actions: [['See my money', '/dashboard/money']] }
-  if (/bank/.test(l))
-    return {
-      text: 'Your direct banking stocks (HDFC Bank and ICICI Bank) are worth ₹4,33,000, about 14% of your money. Counting what your funds hold, HDFC Bank appears in 3 places, about 10% in total.',
-      actions: [['Show details', '/dashboard/money'], ['Ask my adviser', '/dashboard/talk']],
-    }
-  if (/fund|explain/.test(l))
-    return {
-      text: "You hold four funds. Two buy shares in India's biggest companies (the index fund and the flexi-cap fund). One mixes large and mid-sized companies. One lends to companies and pays interest, which is steadier. All are direct plans, so you pay no agent commission.",
-      actions: [['See my funds', '/dashboard/money']],
-    }
-  if (/retire|track/.test(l))
-    return {
-      text: `You have ${lakh(retirement.saved)} set aside for retirement and invest ${rupees(retirement.monthly)} a month. If your investments grow about ${ASSUMED_RETURN * 100}% a year, which is an assumption and not a promise, you would reach about ${lakh(retProjection)} by ${retirement.year}. Your goal is ${lakh(retirement.target)}, so you look ${retProjection >= retirement.target ? 'on track' : 'a little behind'}.`,
-      actions: [['See this goal', '/dashboard/goals/retirement']],
-    }
-  return {
-    text: 'I can help best with questions about your own money. For anything like "should I buy this?", your adviser is the right person. Want me to send them your question?',
-    actions: [['Ask my adviser', '/dashboard/talk']],
-  }
-}
-
 function Ask() {
-  const { name } = usePortal()
+  const { name, data } = usePortal()
   const [msgs, setMsgs] = useState<Msg[]>([
-    { from: 'bot', text: `Hi ${name}! I am Bees Copilot, an AI assistant. I can explain your money in simple words. I use only your own numbers, and I cannot place orders. Anything that sounds like advice can go to your adviser.` },
+    {
+      from: 'bot',
+      text: `Hi ${name}! I am Bees Copilot, an AI assistant. I can explain your money in simple words, using only the holdings and goals you added. I cannot place orders, and anything that sounds like advice goes to your adviser.`,
+    },
   ])
   const [q, setQ] = useState('')
+  const [pending, start] = useTransition()
   const end = useRef<HTMLDivElement>(null)
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest' })
@@ -72,14 +47,22 @@ function Ask() {
 
   const send = (text: string) => {
     const t = text.trim()
-    if (!t) return
-    setMsgs((m) => [...m, { from: 'me', text: t }, { from: 'bot', ...answer(t) }])
+    if (!t || pending) return
+    setMsgs((m) => [...m, { from: 'me', text: t }])
     setQ('')
+    start(async () => {
+      const a = await askCopilot(t)
+      setMsgs((m) => [...m, { from: 'bot', text: a.text, actions: a.actions.length ? (a.actions as [string, string][]) : undefined }])
+    })
   }
+
+  const suggestions = data.hasPortfolio
+    ? ['What is my health score?', 'What do my funds cost?', 'Is my risk within my comfort?', 'Am I on track for my goals?']
+    : ['How do I get started?']
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
-      <PageHead title="Ask Copilot" sub="Ask anything about your money, in your own words." />
+      <PageHead title="Ask Copilot" sub="Ask about your own money, in your own words." />
       <Card>
         <div className="flex min-h-72 flex-col gap-3" role="log" aria-label="Conversation with Bees Copilot">
           {msgs.map((m, i) => (
@@ -96,10 +79,11 @@ function Ask() {
               )}
             </div>
           ))}
+          {pending && <div className="bg-mint text-muted-foreground self-start rounded-2xl rounded-bl-sm px-4 py-3">Looking at your numbers…</div>}
           <div ref={end} />
         </div>
         <div className="flex flex-wrap gap-2">
-          {['Why did my money change this week?', 'How much do I have in banking stocks?', 'Explain my funds in simple words', 'Am I on track to retire?'].map((s) => (
+          {suggestions.map((s) => (
             <button key={s} type="button" onClick={() => send(s)} className="bg-card hover:border-primary rounded-full border px-3.5 py-1.5 text-sm">
               {s}
             </button>
@@ -112,91 +96,48 @@ function Ask() {
             send(q)
           }}
         >
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type your question" aria-label="Your question" autoComplete="off" className="border-input focus-visible:ring-ring/40 min-w-0 flex-1 rounded-xl border-[1.5px] px-3.5 py-3 outline-none focus-visible:ring-3" />
-          <button type="submit" className={btn.primary} aria-label="Send">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type your question" aria-label="Your question" autoComplete="off" maxLength={500} className="border-input focus-visible:ring-ring/40 min-w-0 flex-1 rounded-xl border-[1.5px] px-3.5 py-3 outline-none focus-visible:ring-3" />
+          <button type="submit" className={btn.primary} aria-label="Send" disabled={pending}>
             <Send className="size-4" aria-hidden />
           </button>
         </form>
-        <AiNote>AI-made answers, saved so our compliance team can review them. Every answer uses your numbers. WisBees never gives return guarantees or stock tips.</AiNote>
+        <AiNote>AI-made answers, saved so our compliance team can review them. Every answer uses your own numbers. WisBees never gives return guarantees or stock tips.</AiNote>
       </Card>
     </div>
   )
 }
 
 function Talk() {
-  const { say } = usePortal()
-  const [draft, setDraft] = useState('')
   return (
     <>
       <PageHead
         title="Talk to Adviser"
         sub="Real people, ready to help."
         right={
-          <button type="button" className={btn.primary} onClick={() => say('Pick a slot on the booking page that opens next.')}>
+          <Link href="/#book-call" className={btn.primary}>
             <CalendarDays className="size-4" aria-hidden /> Book a call
-          </button>
+          </Link>
         }
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card>
-          <CardHead title="Your adviser" />
-          <div className="flex items-center gap-3.5">
-            <span className="bg-primary text-primary-foreground flex size-14 items-center justify-center rounded-full text-xl font-bold">NR</span>
-            <div>
-              <b>Neha Rao</b>
-              <div className="text-muted-foreground text-sm">SEBI-registered adviser · replies within 24 hours</div>
-            </div>
-          </div>
-          <div className="bg-mist flex flex-col gap-2.5 rounded-xl p-3.5">
-            <div className="bg-mint max-w-[85%] self-start rounded-2xl rounded-bl-sm px-4 py-3">Hi, I saw your college goal is a bit behind. Shall we look at it on our call on 12 Nov?</div>
-            <div className="bg-primary text-primary-foreground max-w-[85%] self-end rounded-2xl rounded-br-sm px-4 py-3">Yes please. Can we also talk about the tax idea?</div>
-          </div>
-          <form
-            className="flex gap-2.5"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (!draft.trim()) return
-              setDraft('')
-              say('Message sent. Your adviser replies within 24 hours.')
-            }}
-          >
-            <input value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Message to adviser" placeholder="Write to your adviser" className="border-input focus-visible:ring-ring/40 min-w-0 flex-1 rounded-xl border-[1.5px] px-3.5 py-3 outline-none focus-visible:ring-3" />
-            <button type="submit" className={btn.primary} aria-label="Send">
-              <Send className="size-4" aria-hidden />
-            </button>
-          </form>
-          <p className="text-muted-foreground text-sm">Plus plan: replies within 24 hours on working days. Chats are saved in your documents.</p>
-        </Card>
-        <Card>
-          <CardHead title="Your calls" />
-          <ol className="flex flex-col">
-            <li className="flex gap-3 pb-4">
-              <i className="bg-primary mt-1.5 size-3 shrink-0 rounded-full" />
-              <div>
-                <b>12 Nov, 4:00 pm</b>
-                <div className="text-muted-foreground text-sm">Goal planning, 60 min</div>
-                <div className="mt-2 flex gap-2">
-                  <button type="button" className={cn(btn.primary, btn.sm)} onClick={() => say('The call link opens 10 minutes before the start.')}>Join</button>
-                  <button type="button" className={cn(btn.ghost, btn.sm)} onClick={() => say('Change the time on the booking page.')}>Change time</button>
-                </div>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <i className="bg-card border-border mt-1.5 size-3 shrink-0 rounded-full border-2" />
-              <div>
-                <b>15 Aug</b>
-                <div className="text-muted-foreground text-sm">Portfolio review, done. Summary in Documents.</div>
-              </div>
-            </li>
-          </ol>
-          <p className="text-muted-foreground text-sm">2 calls a year on Plus. 1 left this year.</p>
-        </Card>
-      </div>
       <Card>
-        <CardHead title="Book a conversation" />
+        <CardHead title="How it works" />
+        <p className="text-muted-foreground">
+          Calls are booked through our booking page and run by a SEBI-registered adviser. Your adviser sees the same numbers you see here, and each call is recorded with your consent and filed in My Documents.
+        </p>
+        <div className="flex flex-wrap gap-2.5">
+          <Link href="/#book-call" className={cn(btn.primary, btn.sm)}>
+            Book an intro call
+          </Link>
+          <Link href="/dashboard/help" className={cn(btn.ghost, btn.sm)}>
+            Make a complaint
+          </Link>
+        </div>
+      </Card>
+      <Card>
+        <CardHead title="Conversations we offer" />
         <div className="grid gap-3 md:grid-cols-3">
           {consultations.map((c) => (
-            <button key={c.type} type="button" onClick={() => say(`${c.type}: choose a time on the booking page.`)} className="hover:border-primary flex items-center gap-3.5 rounded-xl border px-4 py-3.5 text-left transition-colors">
+            <div key={c.type} className="flex items-center gap-3.5 rounded-xl border px-4 py-3.5">
               <IconBox>
                 <Phone className="size-5" aria-hidden />
               </IconBox>
@@ -204,39 +145,40 @@ function Talk() {
                 <span className="block font-semibold">{c.type}</span>
                 <span className="text-muted-foreground block text-sm">{c.note}</span>
               </span>
-            </button>
+            </div>
           ))}
         </div>
+        <p className="text-muted-foreground text-sm">Which of these your plan includes is listed on the <Link href="/fees" className="text-primary underline underline-offset-2">fees page</Link>.</p>
       </Card>
     </>
   )
 }
 
 function Learn() {
-  const { say } = usePortal()
+  const items = [
+    ['Calculators', 'SIP, step-up SIP, lumpsum, SWP and EMI', 'Open', '/tools/sip-calculator'],
+    ['Port Scan', 'Check your holdings and get a health score', 'Open', '/portfolio-scan'],
+    ['How we use AI', 'What the Copilot does and does not do', 'Read', '/ai-disclosure'],
+    ['Plans and fees', 'One flat, published fee per family', 'Read', '/fees'],
+    ['SEBI disclosures', 'Registration, officers and the complaint process', 'Read', '/sebi-disclosure'],
+  ] as const
   return (
     <>
-      <PageHead title="Learn" sub="Read, watch and understand. No jargon." />
+      <PageHead title="Learn" sub="Read and understand. No jargon." />
       <div className="grid gap-5 md:grid-cols-3">
-        {learnItems.map((a) => (
-          <Card key={a.title}>
-            <IconBox>
-              <BookOpen className="size-5" aria-hidden />
-            </IconBox>
-            <h3 className="text-lg font-semibold">{a.title}</h3>
-            <p className="text-muted-foreground text-sm">{a.body}</p>
-            <Pill className="self-start">{a.tag}</Pill>
-          </Card>
+        {items.map(([title, body, tag, href]) => (
+          <Link key={title} href={href} className="block">
+            <Card className="hover:border-primary h-full transition-colors">
+              <IconBox>
+                <BookOpen className="size-5" aria-hidden />
+              </IconBox>
+              <h3 className="text-lg font-semibold">{title}</h3>
+              <p className="text-muted-foreground text-sm">{body}</p>
+              <Pill className="self-start">{tag}</Pill>
+            </Card>
+          </Link>
         ))}
       </div>
-      <Card>
-        <CardHead title="Explain a document in simple words" />
-        <p className="text-muted-foreground">Upload a fund fact sheet, contract or statement. Copilot writes a short summary and shows you where each point comes from.</p>
-        <button type="button" className={cn(btn.primary, btn.sm, 'self-start')} onClick={() => say('Document upload opens with your linked accounts.')}>
-          Upload a document
-        </button>
-        <AiNote>AI-made summary. Always read the original document.</AiNote>
-      </Card>
       <Card>
         <CardHead title="Money words, made simple" />
         <dl>
@@ -254,31 +196,13 @@ function Learn() {
 }
 
 function Help() {
-  const { say } = usePortal()
+  const { say, tickets } = usePortal()
   const [topic, setTopic] = useState('')
   const [what, setWhat] = useState('')
-  const [tickets, setTickets] = useState<{ id: string; topic: string }[]>([])
+  const [pending, start] = useTransition()
   return (
     <>
       <PageHead title="Help and Complaints" sub="We are here. If something is wrong, tell us." />
-      <div className="grid gap-5 md:grid-cols-3">
-        {[
-          ['Chat with support', 'Mon to Sat, 9 am to 7 pm', MessageCircle],
-          ['Book a call', 'Pick a time that suits you', Phone],
-          ['Common questions', 'Quick answers', HelpCircle],
-        ].map(([t, s, Icon]) => {
-          const I = Icon as typeof Phone
-          return (
-            <Card key={t as string}>
-              <IconBox>
-                <I className="size-5" aria-hidden />
-              </IconBox>
-              <h3 className="text-lg font-semibold">{t as string}</h3>
-              <p className="text-muted-foreground text-sm">{s as string}</p>
-            </Card>
-          )
-        })}
-      </div>
       <Card>
         <CardHead title="Make a complaint" />
         <select value={topic} onChange={(e) => setTopic(e.target.value)} aria-label="Topic" className="border-input bg-card rounded-xl border-[1.5px] px-3.5 py-3">
@@ -286,37 +210,49 @@ function Help() {
           <option>Fees or billing</option>
           <option>An order or investment</option>
           <option>Advice I received</option>
+          <option>An AI answer</option>
           <option>My data or privacy</option>
         </select>
-        <textarea value={what} onChange={(e) => setWhat(e.target.value)} placeholder="Tell us what happened" aria-label="What happened" rows={3} className="border-input focus-visible:ring-ring/40 rounded-xl border-[1.5px] px-3.5 py-3 outline-none focus-visible:ring-3" />
+        <textarea value={what} onChange={(e) => setWhat(e.target.value)} placeholder="Tell us what happened" aria-label="What happened" rows={4} maxLength={4000} className="border-input focus-visible:ring-ring/40 rounded-xl border-[1.5px] px-3.5 py-3 outline-none focus-visible:ring-3" />
         <button
           type="button"
           className={cn(btn.primary, 'self-start')}
-          disabled={!topic || !what.trim()}
-          onClick={() => {
-            const id = `WB-${20_400 + tickets.length + 17}`
-            setTickets((t) => [...t, { id, topic }])
-            setTopic('')
-            setWhat('')
-            say(`Complaint received. Your ticket number is ${id}.`)
-          }}
+          disabled={!topic || !what.trim() || pending}
+          onClick={() =>
+            start(async () => {
+              const res = await fileComplaint({ topic, body: what })
+              if (res.ok) {
+                setTopic('')
+                setWhat('')
+                say(`Complaint received. Your ticket number is ${res.ticket}.`)
+              } else say(res.error)
+            })
+          }
         >
           Submit complaint
         </button>
-        <p className="text-muted-foreground text-sm">You get a ticket number and can track it here. We follow the SEBI complaint process. You can also write to SEBI through the SCORES portal.</p>
+        <p className="text-muted-foreground text-sm">
+          You get a ticket number and can track it here. We follow the SEBI complaint process, and you can also write to SEBI through the SCORES portal. Officers and escalation steps are on our{' '}
+          <Link href="/sebi-disclosure" className="text-primary underline underline-offset-2">
+            SEBI disclosure page
+          </Link>
+          .
+        </p>
       </Card>
       <Card>
-        <CardHead title="Your open tickets" />
+        <CardHead title="Your tickets" />
         {tickets.length === 0 ? (
           <p className="text-muted-foreground">None right now.</p>
         ) : (
           tickets.map((t) => (
             <div key={t.id} className="flex items-center justify-between rounded-xl border px-4 py-3">
               <div>
-                <b>{t.id}</b>
-                <div className="text-muted-foreground text-sm">{t.topic}</div>
+                <b>WB-{t.id}</b>
+                <div className="text-muted-foreground text-sm">
+                  {t.topic} · {new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' }).format(new Date(t.createdAt))}
+                </div>
               </div>
-              <Pill tone="info">Received</Pill>
+              <Pill tone={t.status === 'resolved' ? 'good' : 'info'}>{t.status === 'in_review' ? 'In review' : t.status === 'resolved' ? 'Resolved' : 'Received'}</Pill>
             </div>
           ))
         )}
@@ -326,24 +262,20 @@ function Help() {
 }
 
 function Alerts() {
-  const { say } = usePortal()
+  const { data } = usePortal()
   return (
     <>
-      <PageHead
-        title="Alerts"
-        sub="What changed and what needs you."
-        right={
-          <button type="button" className={cn(btn.ghost, btn.sm)} onClick={() => say('Choose app, email or WhatsApp under Privacy.')}>
-            Choose how to get alerts
-          </button>
-        }
-      />
-      <Card flat>
-        {alerts.map((a) => (
-          <Row key={a.title} href={a.href} icon={<Bell className="size-5" aria-hidden />} title={a.title} sub={a.body} right={<span className="text-muted-foreground text-sm">{a.when}</span>} />
-        ))}
-      </Card>
-      <p className="text-muted-foreground text-sm">You can get alerts on the app, by email or on WhatsApp.</p>
+      <PageHead title="Alerts" sub="What changed and what needs you." />
+      {data.alerts.length === 0 ? (
+        <EmptyState title="No alerts" body="We tell you when your score drops, a holding passes your limit or something new stands out in your Port Scan. Nothing has come up." />
+      ) : (
+        <Card flat>
+          {data.alerts.map((a) => (
+            <Row key={a.id} href={a.href} icon={<Bell className="size-5" aria-hidden />} title={a.title} sub={a.body} right={<span className="text-muted-foreground text-sm">{a.when}</span>} />
+          ))}
+        </Card>
+      )}
+      <p className="text-muted-foreground text-sm">Choose which alerts you get in your Port Scan settings.</p>
     </>
   )
 }
