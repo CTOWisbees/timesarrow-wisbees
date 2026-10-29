@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, FileText, Loader2, LogOut } from 'lucide-react'
+import { ChevronDown, FileText, LayoutDashboard, Loader2, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { useTransition } from 'react'
 
@@ -45,6 +45,16 @@ export function AccountMenu({ account }: { account: AccountSummary }) {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
+        <DropdownMenuItem asChild className="items-start gap-3 px-2 py-2">
+          <Link href="/dashboard">
+            <LayoutDashboard className="text-primary mt-0.5" aria-hidden />
+            <span>
+              <span className="text-ink block text-sm font-medium">My dashboard</span>
+              <span className="text-muted-foreground block text-xs">Money, goals and to-dos</span>
+            </span>
+          </Link>
+        </DropdownMenuItem>
 
         <DropdownMenuItem asChild className="items-start gap-3 px-2 py-2">
           <Link href="/onboarding">

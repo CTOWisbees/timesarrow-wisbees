@@ -52,6 +52,9 @@ export function ReviewStatus({
       }
       composer={
         <div className={cn('flex flex-wrap justify-center gap-2.5', enter)}>
+          <Link href="/dashboard" className={chipClass}>
+            Open my dashboard
+          </Link>
           <Link href="/" className={chipClass}>
             Back to the website
           </Link>

@@ -85,6 +85,17 @@ chatbot) build on this same app.
 - Nightly: `/api/portfolio/cron` (`pnpm scan:nightly`, `FORCE=1` to re-score everything).
 - Demo mode adds "continue as test user" and a plan switcher; payments use Razorpay when its keys are set.
 
+## Client dashboard (Bees Copilot) — `/dashboard`
+- Lives in the `(portal)` route group (own root layout, no site header/footer, never indexed). One route,
+  `dashboard/[[...section]]`, maps to the screens in `src/components/portal/screens/` (home, money, goals, to-do,
+  invest, activity, tax, ask, talk, learn, documents, family, plan, privacy, help, alerts).
+- **Sample data for now.** `src/lib/portal/data.ts` is an example family until Account Aggregator, CAMS/KFintech and
+  broker links exist; the page says so. Replace it screen by screen with real reads.
+- Rules from the BRD: software calculates (`src/lib/portal/math.ts`, unit tested), AI only explains; nothing is placed
+  without a one-tap client approval (the confirm dialog); AI disclosure on every Copilot output; client approves, WisBees
+  never moves money. Release 2 items (automated execution, TLH engine, family invites) are UI previews only.
+- `/fees` and `/ai-disclosure` are public pages whose copy still needs BASL approval before indexing.
+
 ## Roadmap hooks
 - Client dashboard → more pages in `src/app/(app)/`, gated by `getCurrentUser()` (`/portfolio` is the first).
 - Account Aggregator → implement `AccountAggregatorProvider` in `src/lib/portfolio/account-aggregator.ts`.
