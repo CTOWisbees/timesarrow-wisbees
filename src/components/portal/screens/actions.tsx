@@ -25,16 +25,16 @@ function TodoScreen() {
     <>
       <PageHead
         title="To Do"
-        sub={openTodos ? `${openTodos} ${openTodos === 1 ? 'thing needs' : 'things need'} your OK. We get everything ready; you decide.` : 'Nothing is waiting for you.'}
+        sub={openTodos ? `${openTodos} waiting for your OK` : 'Nothing is waiting for you.'}
       />
       <div className="bg-mint flex items-center gap-3 rounded-2xl p-4 text-sm">
         <ShieldCheck className="text-primary size-5 shrink-0" aria-hidden />
         <p>
-          <b>You are always in charge.</b> We never move your money by ourselves. Your answer is recorded, and any order is prepared for your own account, which you approve there.
+          <b>You stay in charge.</b> We never move your money. Orders are prepared for your own account.
         </p>
       </div>
-      {!data.hasPortfolio && <EmptyState title="No suggestions yet" body="Suggestions come from your own holdings and goals. Add your holdings in Port Scan to see them." href="/portfolio-scan" cta="Run a Port Scan" />}
-      {data.hasPortfolio && data.todos.length === 0 && <EmptyState title="All clear" body="Your mix is inside your risk limit, no holding is below what you paid, and your goals are on track at your current monthly amounts." />}
+      {!data.hasPortfolio && <EmptyState title="No suggestions yet" body="Add your holdings to see suggestions." href="/portfolio-scan" cta="Run a Port Scan" />}
+      {data.hasPortfolio && data.todos.length === 0 && <EmptyState title="All clear" body="Nothing needs your attention." />}
       {data.todos.map((t) => (
         <TodoCard key={t.id} todo={t} decision={answered(t.id)} onApprove={() => setConfirming(t)} />
       ))}
@@ -110,7 +110,7 @@ function TodoCard({ todo: t, decision, onApprove }: { todo: Todo; decision?: 'ap
           </Link>
         </div>
       )}
-      <AiNote>Prepared by Bees Copilot (AI) from your numbers, checked by our rules. Nothing happens until you approve.</AiNote>
+      <AiNote>AI-prepared. Nothing happens until you approve.</AiNote>
     </article>
   )
 }
@@ -126,7 +126,7 @@ function ConfirmDialog({ todo, onClose }: { todo: Todo; onClose: () => void }) {
           <b>{todo.label}</b>: {todo.title}
         </p>
         <p className="bg-mist rounded-xl p-3.5 text-sm">
-          You are telling your adviser to prepare this. WisBees does not hold or move your money: the order is prepared for <b>your own</b> account, and you approve it there before anything happens.
+          Your adviser prepares this for <b>your own</b> account. WisBees never moves your money; you approve there.
         </p>
         <div className="flex flex-wrap gap-2.5">
           <button
@@ -170,7 +170,7 @@ function Invest() {
           <CardHead title="Your risk profile" right={data.risk.category ? <Pill tone="info">{data.risk.category}</Pill> : null} />
           {data.risk.equityLimit !== null ? (
             <>
-              <p className="text-muted-foreground">From your risk questions at sign-up. It allows up to {data.risk.equityLimit}% of your money in shares.</p>
+              <p className="text-muted-foreground">Allows up to {data.risk.equityLimit}% in shares.</p>
               {data.hasPortfolio ? (
                 <ul className="flex flex-col gap-2">
                   {data.mix.map((m) => (
@@ -187,7 +187,7 @@ function Invest() {
             </>
           ) : (
             <>
-              <p className="text-muted-foreground">You have not finished the risk questions yet. They set how much of your money should be in shares.</p>
+              <p className="text-muted-foreground">Finish the risk questions to set your share limit.</p>
               <Link href="/onboarding" className={cn(btn.primary, btn.sm, 'self-start')}>
                 Finish my profile
               </Link>
@@ -217,7 +217,7 @@ function Invest() {
           ) : (
             <p className="text-muted-foreground">Set a monthly amount on each goal and it adds up here.</p>
           )}
-          <p className="text-muted-foreground text-sm">These are your plans. You make each investment yourself, in your own account; automatic one-tap investing is coming for Plus and Private clients.</p>
+          <p className="text-muted-foreground text-sm">You invest from your own account.</p>
           <Link href="/dashboard/goals" className={cn(btn.ghost, btn.sm, 'self-start')}>
             Change amounts in My Goals
           </Link>
@@ -229,7 +229,7 @@ function Invest() {
             <TrendingUp className="size-5" aria-hidden />
           </IconBox>
           <h3 className="text-lg font-semibold">Bring back to plan</h3>
-          <p className="text-muted-foreground text-sm">We check whether your shares have grown past your limit. When they have, a ready suggestion appears in To Do.</p>
+          <p className="text-muted-foreground text-sm">Flags when shares pass your limit.</p>
           {data.hasPortfolio && shares && data.risk.equityLimit !== null ? <Pill tone={drifted ? 'warn' : 'good'}>{drifted ? 'Past your limit' : 'Inside your limit'}</Pill> : <Pill>Needs holdings and a risk profile</Pill>}
           <Link href="/dashboard/todo" className={cn(btn.ghost, btn.sm, 'self-start')}>
             Review
@@ -240,14 +240,14 @@ function Invest() {
             <Coins className="size-5" aria-hidden />
           </IconBox>
           <h3 className="text-lg font-semibold">Gold and silver</h3>
-          <p className="text-muted-foreground text-sm">A small share that can steady a plan. {data.hasPortfolio ? `You hold ${gold?.now ?? 0}% in gold.` : 'Add your holdings to see yours.'}</p>
+          <p className="text-muted-foreground text-sm">{data.hasPortfolio ? `You hold ${gold?.now ?? 0}% in gold.` : 'Add holdings to see yours.'}</p>
         </Card>
         <Card className="border-border border-dashed">
           <IconBox>
             <Lock className="size-5" aria-hidden />
           </IconBox>
           <h3 className="text-lg font-semibold">Specialised funds (SIFs)</h3>
-          <p className="text-muted-foreground text-sm">An advanced fund type with a ₹10 lakh minimum and extra risk. Part of the Private plan, after a suitability check.</p>
+          <p className="text-muted-foreground text-sm">₹10 lakh minimum. Private plan.</p>
           <Pill>Private plan</Pill>
           <Link href="/fees" className={cn(btn.ghost, btn.sm, 'self-start')}>
             See plans
@@ -282,7 +282,7 @@ function Activity() {
               </div>
             ))
           )}
-          <p className="text-muted-foreground text-sm">Each answer is saved with the date and what you were shown. Orders will appear here once investing through your own account is switched on.</p>
+          
         </Card>
         <Card>
           <CardHead title="Port Scan history" />
@@ -328,13 +328,13 @@ function Tax() {
       <PageHead title="Save Tax" sub="Simple ways to keep more of what you earn." />
       <div className="grid gap-4 md:grid-cols-3">
         <Stat label="Holdings below what you paid" value={String(data.losses.length)} />
-        <Stat label="Total unrealised loss" value={total ? rupees(total) : '₹0'} sub="Not yet booked: you have not sold" />
+        <Stat label="Total unrealised loss" value={total ? rupees(total) : '₹0'} sub="Not booked yet" />
         <Stat label="Last date to act" value="31 March" sub={<Pill tone="info">{days} days left</Pill>} />
       </div>
       {!data.hasPortfolio ? (
-        <EmptyState title="Add your holdings first" body="We look for holdings worth less than you paid, because booking a loss can cancel gains and lower your tax." href="/portfolio-scan" cta="Run a Port Scan" />
+        <EmptyState title="Add your holdings first" body="We look for holdings worth less than you paid." href="/portfolio-scan" cta="Run a Port Scan" />
       ) : data.losses.length === 0 ? (
-        <EmptyState title="Nothing to book right now" body="None of the holdings you added is worth less than you paid. If you did not add what you paid for each holding, we cannot tell: add the cost in Port Scan." href="/portfolio-scan" cta="Update my holdings" />
+        <EmptyState title="Nothing to book right now" body="No holding is below what you paid. Add what you paid in Port Scan so we can tell." href="/portfolio-scan" cta="Update my holdings" />
       ) : (
         <Card flat>
           <div className="px-5 pt-5 pb-2">
@@ -367,7 +367,7 @@ function Tax() {
         <ul className="flex list-disc flex-col gap-1.5 pl-5">
           <li>If you sell something at a loss, that loss can cancel gains from other sales. Your tax bill can go down.</li>
           <li>You stay invested by moving into a similar investment.</li>
-          <li>The saving depends on your gains and the rules at the time, so our CA team works it out with you before anything is prepared. You approve every sale.</li>
+          <li>Our CA team works out the saving with you. You approve every sale.</li>
         </ul>
         <div className="flex flex-wrap gap-2.5">
           <Link href="/dashboard/todo" className={cn(btn.primary, btn.sm)}>

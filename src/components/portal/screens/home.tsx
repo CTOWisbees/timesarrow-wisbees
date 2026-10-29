@@ -22,17 +22,17 @@ export function Home() {
 
   return (
     <>
-      {data.sample && <p className="bg-amber-soft text-amber-ink rounded-lg px-3 py-1.5 text-center text-xs">Example data for a sample family (local demo only). Run a Port Scan to see your own numbers here.</p>}
+      {data.sample && <p className="bg-amber-soft text-amber-ink rounded-lg px-3 py-1.5 text-center text-xs">Example data (local demo only).</p>}
 
       <div>
         <h2 className="text-3xl font-semibold tracking-tight">Welcome, {name}</h2>
-        <p className="text-muted-foreground">{data.hasPortfolio ? 'Here is how your money is doing, from the holdings you added.' : 'Your dashboard fills in as soon as you tell us what you hold.'}</p>
+        <p className="text-muted-foreground">{data.hasPortfolio ? 'Here is how your money is doing.' : 'Add what you hold to get started.'}</p>
       </div>
 
       {!data.hasPortfolio ? (
         <EmptyState
           title="Add what you hold to get started"
-          body="Upload a statement or type your holdings into Port Scan. You get a 0–100 health score in under a minute, and this dashboard shows your money, risk, costs and suggestions from it."
+          body="Upload a statement or type your holdings in Port Scan. Your dashboard fills in from it."
           href="/portfolio-scan"
           cta="Run a Port Scan"
         />
@@ -119,8 +119,7 @@ export function Home() {
           </div>
         </Card>
       )}
-      {openTodos === 0 && data.hasPortfolio && <p className="text-muted-foreground text-sm">Nothing is waiting for you right now.</p>}
-      <Disclaimer />
+            <Disclaimer />
     </>
   )
 }
@@ -152,7 +151,7 @@ function Brief() {
           Ask a question
         </Link>
       </div>
-      <AiNote>AI-made brief, read from your own numbers and checked by our rules. Ask Copilot shows where each answer comes from.</AiNote>
+      <AiNote>AI-made from your numbers.</AiNote>
     </section>
   )
 }
@@ -235,7 +234,7 @@ function CostCard() {
       {data.fees.yearly !== null ? (
         <>
           <div className="font-heading text-4xl font-semibold tabular-nums">{rupees(data.fees.yearly)}</div>
-          <p className="text-muted-foreground text-sm">a year in fund fees{data.fees.weightedTer !== null ? `, an average of ${data.fees.weightedTer.toFixed(2)}% of what you hold in funds` : ''}.</p>
+          <p className="text-muted-foreground text-sm">a year in fund fees{data.fees.weightedTer !== null ? ` · ${data.fees.weightedTer.toFixed(2)}% average` : ''}.</p>
           {data.fees.regularShare !== null && data.fees.regularShare > 0 ? (
             <p className="text-sm">
               <Pill tone="warn">Regular plans</Pill> About {(data.fees.regularShare * 100).toFixed(0)}% of your fund money is in regular plans, which pay a commission and cost more than direct plans of the same funds.
@@ -247,9 +246,9 @@ function CostCard() {
           )}
         </>
       ) : (
-        <p className="text-muted-foreground">Fund fees could not be worked out from what you added. Add funds from the search in Port Scan so we can read their yearly cost.</p>
+        <p className="text-muted-foreground">Fund fees need funds picked from the Port Scan search.</p>
       )}
-      <p className="text-muted-foreground text-xs">Estimates from published fund fees. Not a promise of future costs.</p>
+      
     </Card>
   )
 }
@@ -272,7 +271,7 @@ function GoalsStrip() {
           ))}
         </div>
       ) : (
-        <EmptyState title="No goals yet" body="Tell us what you are saving for, such as retirement, a child’s college or a home, and we show whether you are on track." href="/dashboard/goals" cta="Add your first goal" />
+        <EmptyState title="No goals yet" body="Add what you are saving for to see if you are on track." href="/dashboard/goals" cta="Add your first goal" />
       )}
     </>
   )

@@ -32,7 +32,7 @@ export function Money() {
     return (
       <>
         <PageHead title="My Money" sub="Everything you own, in one place." />
-        <EmptyState title="Nothing here yet" body="Add your holdings in Port Scan, from a statement or by hand, and they show up here with your mix, costs and risk." href="/portfolio-scan" cta="Run a Port Scan" />
+        <EmptyState title="Nothing here yet" body="Add your holdings in Port Scan to see them here." href="/portfolio-scan" cta="Run a Port Scan" />
       </>
     )
 
@@ -159,7 +159,7 @@ function MixTab({ data }: { data: PortalData }) {
           {data.fees.regularShare !== null && data.fees.regularShare > 0 && (
             <div>
               <Pill tone="warn">Regular plans</Pill>
-              <p className="mt-1.5 text-sm">About {(data.fees.regularShare * 100).toFixed(0)}% of your fund money is in regular plans. The direct plan of the same fund costs less each year.</p>
+              <p className="mt-1.5 text-sm">{(data.fees.regularShare * 100).toFixed(0)}% of your fund money is in regular plans. Direct plans cost less.</p>
             </div>
           )}
           {data.losses.length > 0 && (
@@ -191,7 +191,7 @@ function Costs({ data }: { data: PortalData }) {
       <Card>
         <CardHead title="What your funds cost" />
         {data.fees.yearly === null ? (
-          <p className="text-muted-foreground">Fund fees could not be read from what you added. Search for each fund by name in Port Scan so we can use its published yearly cost.</p>
+          <p className="text-muted-foreground">Fund fees need funds picked from the Port Scan search.</p>
         ) : (
           <>
             <div className="font-heading text-4xl font-semibold tabular-nums">{rupees(data.fees.yearly)}</div>
@@ -221,7 +221,7 @@ function Costs({ data }: { data: PortalData }) {
             <Pill tone={b.share >= 20 ? 'warn' : b.share >= 10 ? 'info' : 'good'}>{b.share.toFixed(0)}% of your money</Pill>
           </div>
         ))}
-        <p className="text-muted-foreground text-sm">We flag a single holding past 20%. Funds that already hold many companies are counted as one holding here.</p>
+        
       </Card>
     </div>
   )
@@ -235,7 +235,7 @@ function Stress({ data }: { data: PortalData }) {
   return (
     <Card>
       <CardHead title="What if markets fall?" />
-      <p className="text-muted-foreground">Slide to see how a fall in shares could change your total money. This is a simple what-if, not a forecast.</p>
+      <p className="text-muted-foreground">Slide to see what a fall in shares could do. Not a forecast.</p>
       <label htmlFor="fall" className="text-muted-foreground text-sm">
         Shares fall by
       </label>
@@ -246,7 +246,7 @@ function Stress({ data }: { data: PortalData }) {
         <Stat label="Change" value={`−${lakh(r.loss)}`} tone="down" />
         <Stat label="Change in your money" value={`−${r.lossPct.toFixed(1)}%`} />
       </div>
-      <p className="text-muted-foreground text-sm">Bonds are assumed to fall a fifth as much as shares; gold and cash are left unchanged. Nothing here is a prediction.</p>
+      <p className="text-muted-foreground text-sm">Bonds fall a fifth as much; gold and cash stay put.</p>
     </Card>
   )
 }
@@ -262,7 +262,7 @@ function Accounts() {
   return (
     <Card>
       <CardHead title="Keep your holdings up to date" />
-      <p className="text-muted-foreground">Today your numbers come from what you add in Port Scan. Re-run it whenever your holdings change. Automatic linking is on the way.</p>
+      <p className="text-muted-foreground">Your numbers come from Port Scan. Re-run it when your holdings change.</p>
       <div className="grid gap-3 md:grid-cols-2">
         {rows.map(([t, s, st, href]) => {
           const body = (

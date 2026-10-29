@@ -13,5 +13,5 @@ export function briefFor(data: PortalData): Brief {
     .filter((f) => f.brief)
     .sort((a, b) => a.priority - b.priority)
     .slice(0, 5)
-  return { lines: facts.map((f) => ({ text: f.text, url: f.url })), sources: facts.length }
+  return { lines: facts.map((f) => ({ text: f.short ?? f.text, url: f.url })), sources: facts.length }
 }

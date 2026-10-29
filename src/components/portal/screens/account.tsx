@@ -22,14 +22,14 @@ function Documents() {
       <PageHead title="My Documents" sub="Everything in one safe place." />
       <EmptyState
         title="No documents yet"
-        body="Your advisory agreement, risk and suitability report, call summaries and capital gains reports are filed here once you subscribe to an advisory plan. Your Port Scan report can be downloaded from your Port Scan results."
+        body="Agreements, reports and call summaries appear here once you subscribe to an advisory plan."
         href="/portfolio"
         cta="Open my Port Scan"
       />
       <Card flat>
-        <Row icon={<FileText className="size-5" aria-hidden />} title="Port Scan PDF report" sub="From your latest portfolio check, with a paid Port Scan plan" right={<Download className="text-muted-foreground size-4" aria-hidden />} href="/portfolio" />
+        <Row icon={<FileText className="size-5" aria-hidden />} title="Port Scan PDF report" sub="With a paid Port Scan plan" right={<Download className="text-muted-foreground size-4" aria-hidden />} href="/portfolio" />
       </Card>
-      <p className="text-muted-foreground text-sm">Documents are stored in India and encrypted, and kept for the time the law requires.</p>
+      
     </>
   )
 }
@@ -49,7 +49,7 @@ function Family() {
         </div>
         <div className="font-heading text-2xl font-semibold tabular-nums">{data.hasPortfolio ? lakh(data.total) : 'No holdings added'}</div>
       </Card>
-      <EmptyState title="Family view is coming" body="Soon you can invite a spouse or parent with their own login and see everyone’s money together, with each person choosing what to share. It is part of the Plus and Private plans." href="/fees" cta="See plans" />
+      <EmptyState title="Family view is coming" body="Invite a spouse or parent and see everyone’s money together. Part of Plus and Private." href="/fees" cta="See plans" />
     </>
   )
 }
@@ -64,7 +64,7 @@ function Plan() {
         <Card>
           <CardHead title="Your plan" right={<Pill tone="good">Active</Pill>} />
           <div className="font-heading text-4xl font-semibold">{data.planLabel.replace(' plan', '')}</div>
-          <p className="text-muted-foreground">{paid ? 'A paid Port Scan plan. Advisory plans are not part of it.' : 'You have the free Port Scan and calculators. Advisory plans are subscribed to with an adviser.'}</p>
+          <p className="text-muted-foreground">{paid ? 'Paid Port Scan plan.' : 'Free Port Scan and calculators.'}</p>
           <div className="flex flex-wrap gap-2.5">
             <Link href="/portfolio" className={cn(btn.ghost, btn.sm)}>
               Port Scan plans
@@ -103,7 +103,7 @@ function Plan() {
       </div>
       <Card>
         <CardHead title="Invoices" />
-        <p className="text-muted-foreground">No invoices yet. Invoices and your fee history appear here once you subscribe to an advisory plan.</p>
+        <p className="text-muted-foreground">No invoices yet.</p>
       </Card>
       <Disclaimer />
     </>
@@ -120,7 +120,7 @@ function Privacy() {
         <Row
           icon={<Lock className="size-5" aria-hidden />}
           title="Port Scan holdings"
-          sub={data.hasPortfolio ? 'Shared by you when you added them. Delete them below to withdraw.' : 'Nothing shared yet'}
+          sub={data.hasPortfolio ? 'Added by you' : 'Nothing shared yet'}
           right={<Pill tone={data.hasPortfolio ? 'good' : 'grey'}>{data.hasPortfolio ? 'Shared' : 'None'}</Pill>}
         />
         {['Bank accounts (Account Aggregator)', 'Mutual funds (CAMS and KFintech)', 'Broker accounts'].map((n) => (
@@ -131,15 +131,14 @@ function Privacy() {
         <CardHead title="Your data" />
         <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm">
           <li>Stored in India and encrypted.</li>
-          <li>Never used to answer another person’s questions.</li>
           <li>
-            Copilot is AI. Every AI answer is saved so our compliance team can review it. Read how AI is used in our{' '}
+            Copilot answers are AI-made and logged. See{' '}
             <Link href="/ai-disclosure" className="text-primary underline underline-offset-2">
-              AI disclosure
+              how we use AI
             </Link>
             .
           </li>
-          <li>Deleting your data removes your portfolios, goals and answers. Complaints and the log of AI answers are kept as compliance records.</li>
+          <li>Deleting removes your portfolios, goals and answers. Complaints and AI logs are kept by law.</li>
         </ul>
         <div className="flex flex-wrap gap-2.5">
           <a href="/api/portfolio/my-data" download className={cn(btn.ghost, btn.sm)}>
@@ -163,7 +162,7 @@ function Privacy() {
       </Card>
       <Card>
         <CardHead title="Sign-in" />
-        <Row className="px-0" title="One-time code or Google" sub="Each sign-in is verified with a code sent to you, or by Google" right={<Pill tone="good">Active</Pill>} />
+        <Row className="px-0" title="One-time code or Google" sub="Code or Google" right={<Pill tone="good">Active</Pill>} />
         <Link href="/login" className={cn(btn.ghost, btn.sm, 'self-start')}>
           Sign in again on another device
         </Link>

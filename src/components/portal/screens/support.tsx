@@ -111,7 +111,7 @@ function Ask() {
             <Send className="size-4" aria-hidden />
           </button>
         </form>
-        <AiNote>AI-made answers, saved with their sources so our compliance team can review them. Each answer is retrieved from your own numbers and what WisBees has published. We never give return guarantees or stock tips.</AiNote>
+        <AiNote>AI-made from your numbers and our published pages. No tips or guarantees.</AiNote>
       </Card>
     </div>
   )
@@ -158,7 +158,7 @@ function Talk() {
             </div>
           ))}
         </div>
-        <p className="text-muted-foreground text-sm">Which of these your plan includes is listed on the <Link href="/fees" className="text-primary underline underline-offset-2">fees page</Link>.</p>
+        
       </Card>
     </>
   )
@@ -277,7 +277,7 @@ function Alerts() {
     <>
       <PageHead title="Alerts" sub="What changed and what needs you." />
       {data.alerts.length === 0 ? (
-        <EmptyState title="No alerts" body="We tell you when your score drops, a holding passes your limit or something new stands out in your Port Scan. Nothing has come up." />
+        <EmptyState title="No alerts" body="Nothing has come up." />
       ) : (
         <Card flat>
           {data.alerts.map((a) => (

@@ -165,7 +165,7 @@ export function GoalsList() {
           ))}
         </div>
       ) : (
-        !adding && <EmptyState title="No goals yet" body="Add what you are saving for. We use what you have saved and invest each month to show whether you will get there, assuming about 10% growth a year." />
+        !adding && <EmptyState title="No goals yet" body="Add what you are saving for to see if you are on track." />
       )}
       <Disclaimer />
     </>
@@ -271,7 +271,7 @@ function GoalView({ goal }: { goal: Goal }) {
       </div>
 
       <Card>
-        <CardHead title="A sensible mix for this goal" />
+        <CardHead title="Typical mix for this goal" />
         <ul className="flex flex-col gap-2">
           {[
             [CLASS_COLORS.equity, longTerm ? 'Shares (index and flexi-cap funds)' : 'Shares and bond funds', longTerm ? '80%' : '50%'],
@@ -285,7 +285,7 @@ function GoalView({ goal }: { goal: Goal }) {
             </li>
           ))}
         </ul>
-        <p className="text-muted-foreground text-sm">A general guide by time left, not advice for you. Your adviser sets the actual mix with you.</p>
+        <p className="text-muted-foreground text-sm">A general guide by time left. Your adviser sets your actual mix.</p>
         <div className="flex flex-wrap gap-2.5">
           <button
             type="button"

@@ -4,7 +4,7 @@ import type { Goal, PortalData } from '@/lib/portal/types'
 
 import type { Chunk } from './bm25'
 
-export type Fact = Chunk & { scope: 'client'; /** Lower is more important; used to order the daily brief. */ priority: number; brief?: boolean }
+export type Fact = Chunk & { scope: 'client'; /** Lower is more important; used to order the daily brief. */ priority: number; brief?: boolean; /** One short line for the brief, when the full fact is long. */ short?: string }
 
 const rupees = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`
 const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
@@ -14,7 +14,7 @@ const lakh = (n: number) => {
   return n >= 10_000_000 ? `₹${trim(n / 10_000_000)} crore` : n >= 100_000 ? `₹${trim(n / 100_000)} lakh` : rupees(n)
 }
 
-const fact = (id: string, title: string, url: string, text: string, priority: number, opts: { tags?: string[]; brief?: boolean } = {}): Fact => ({
+const fact = (id: string, title: string, url: string, text: string, priority: number, opts: { tags?: string[]; brief?: boolean; short?: string } = {}): Fact => ({
   id,
   title,
   url,
@@ -23,6 +23,7 @@ const fact = (id: string, title: string, url: string, text: string, priority: nu
   priority,
   tags: opts.tags,
   brief: opts.brief,
+  short: opts.short,
 })
 
 export function goalFacts(g: Goal, monthly = g.monthly, annualReturn = ASSUMED_RETURN): { projected: number; status: 'on' | 'behind'; extra: number; text: string } {
@@ -46,10 +47,10 @@ export function buildFacts(d: PortalData): Fact[] {
   const out: Fact[] = []
 
   if (!d.hasPortfolio) {
-    out.push(fact('none', 'Your holdings', '/portfolio-scan', 'You have not added any holdings yet, so there is nothing of yours to explain. Run a Port Scan with what you hold to see your money, risk, costs and suggestions.', 1, { tags: ['holdings', 'my'], brief: true }))
+    out.push(fact('none', 'Your holdings', '/portfolio-scan', 'You have not added any holdings yet, so there is nothing of yours to explain. Run a Port Scan with what you hold to see your money, risk, costs and suggestions.', 1, { tags: ['holdings', 'my'], brief: true , short: 'Add your holdings to get started.' }))
   } else {
     const shares = d.mix.find((m) => m.label === 'Shares')
-    out.push(fact('overview', 'Your money', '/dashboard/money', `You hold ${d.holdings.length} ${d.holdings.length === 1 ? 'investment' : 'investments'} worth ${rupees(d.total)} in total${d.asOf ? `, as of ${day(d.asOf)}` : ''}.`, 5, { tags: ['total', 'net worth', 'how much', 'my money'], brief: true }))
+    out.push(fact('overview', 'Your money', '/dashboard/money', `You hold ${d.holdings.length} ${d.holdings.length === 1 ? 'investment' : 'investments'} worth ${rupees(d.total)} in total${d.asOf ? `, as of ${day(d.asOf)}` : ''}.`, 5, { tags: ['total', 'net worth', 'how much', 'my money'], brief: true , short: `${d.holdings.length} ${d.holdings.length === 1 ? 'investment' : 'investments'} worth ${rupees(d.total)}.` }))
     out.push(fact('mix', 'Your mix', '/dashboard/money', `Your money by type: ${d.mix.map((m) => `${m.label} ${m.now}%`).join(', ')}.`, 6, { tags: ['allocation', 'mix', 'split', 'asset'] }))
     if (shares && d.risk.equityLimit !== null)
       out.push(
@@ -59,10 +60,10 @@ export function buildFacts(d: PortalData): Fact[] {
           '/dashboard/invest',
           `Your risk profile${d.risk.category ? ` (${d.risk.category})` : ''} allows up to ${d.risk.equityLimit}% of your money in shares. You hold ${shares.now}%, so you are ${shares.now > d.risk.equityLimit + 3 ? `${shares.now - d.risk.equityLimit} points past it` : 'inside it'}.`,
           shares.now > d.risk.equityLimit + 3 ? 1 : 8,
-          { tags: ['risk', 'comfort', 'limit', 'shares', 'equity', 'rebalance'], brief: shares.now > d.risk.equityLimit + 3 },
+          { tags: ['risk', 'comfort', 'limit', 'shares', 'equity', 'rebalance'], brief: shares.now > d.risk.equityLimit + 3, short: `Shares are ${shares.now}%; your limit is ${d.risk.equityLimit}%.` },
         ),
       )
-    else if (shares) out.push(fact('shares', 'Your shares', '/dashboard/money', `Shares are ${shares.now}% of your money.`, 7, { tags: ['shares', 'equity'], brief: true }))
+    else if (shares) out.push(fact('shares', 'Your shares', '/dashboard/money', `Shares are ${shares.now}% of your money.`, 7, { tags: ['shares', 'equity'], brief: true , short: `Shares are ${shares.now}% of your money.` }))
 
     for (const h of d.holdings)
       out.push(
@@ -77,7 +78,7 @@ export function buildFacts(d: PortalData): Fact[] {
       )
 
     const top = d.biggest[0]
-    if (top) out.push(fact('top', 'Your biggest holding', '/dashboard/money', `Your biggest holding is ${top.name} at ${pct(top.share)} of your money${top.share >= 20 ? ', which is a lot in one place' : ''}.`, top.share >= 20 ? 2 : 9, { tags: ['biggest', 'largest', 'concentration', 'top'], brief: top.share >= 10 }))
+    if (top) out.push(fact('top', 'Your biggest holding', '/dashboard/money', `Your biggest holding is ${top.name} at ${pct(top.share)} of your money${top.share >= 20 ? ', which is a lot in one place' : ''}.`, top.share >= 20 ? 2 : 9, { tags: ['biggest', 'largest', 'concentration', 'top'], brief: top.share >= 10, short: `Biggest holding: ${top.name}, ${pct(top.share)}.` }))
 
     if (d.fees.yearly !== null)
       out.push(
@@ -87,7 +88,7 @@ export function buildFacts(d: PortalData): Fact[] {
           '/dashboard/money',
           `Your funds cost about ${rupees(d.fees.yearly)} a year in fees${d.fees.weightedTer !== null ? `, an average of ${d.fees.weightedTer.toFixed(2)}% of your fund money` : ''}.${d.fees.regularShare ? ` About ${pct(d.fees.regularShare * 100)} of your fund money is in regular plans, which pay a distributor commission and cost more than direct plans.` : ' None of it is in regular plans.'}`,
           d.fees.regularShare ? 3 : 10,
-          { tags: ['fee', 'cost', 'charge', 'expense', 'ter', 'regular', 'direct'], brief: true },
+          { tags: ['fee', 'cost', 'charge', 'expense', 'ter', 'regular', 'direct'], brief: true, short: `Fund fees: ${rupees(d.fees.yearly)} a year${d.fees.regularShare ? `, ${pct(d.fees.regularShare * 100)} in regular plans` : ''}.` },
         ),
       )
     else out.push(fact('fees', 'What your funds cost', '/dashboard/money', 'Fund fees could not be worked out from what you added, because they need funds picked from the Port Scan search so their published yearly cost can be read.', 12, { tags: ['fee', 'cost'] }))
@@ -122,7 +123,7 @@ export function buildFacts(d: PortalData): Fact[] {
           '/dashboard',
           `Your portfolio health score is ${d.score.value} out of 100${d.score.label ? ` (${d.score.label})` : ''}.${d.score.weakest ? ` The part holding it back most is "${d.score.weakest}".` : ''}${d.flagCount ? ` ${d.flagCount} ${d.flagCount === 1 ? 'thing stands' : 'things stand'} out in your Port Scan.` : ''}`,
           4,
-          { tags: ['score', 'health', 'rating', 'how am i doing'], brief: true },
+          { tags: ['score', 'health', 'rating', 'how am i doing'], brief: true, short: `Health score ${d.score.value}/100${d.score.label ? ` (${d.score.label})` : ''}.` },
         ),
       )
     if (d.losses.length)
@@ -133,14 +134,14 @@ export function buildFacts(d: PortalData): Fact[] {
           '/dashboard/tax',
           `${d.losses.length} ${d.losses.length === 1 ? 'holding is' : 'holdings are'} worth less than you paid: ${d.losses.map((l) => `${l.name} (down ${rupees(l.loss)})`).join(', ')}. Booking a loss can lower your tax; see Save Tax.`,
           3,
-          { tags: ['loss', 'tax', 'harvest', 'down', 'below'], brief: true },
+          { tags: ['loss', 'tax', 'harvest', 'down', 'below'], brief: true, short: `${d.losses.length} ${d.losses.length === 1 ? 'holding is' : 'holdings are'} below what you paid.` },
         ),
       )
   }
 
   for (const g of d.goals) {
     const f = goalFacts(g)
-    out.push(fact(`goal:${g.id}`, `Your goal: ${g.name}`, `/dashboard/goals/${g.id}`, f.text, f.status === 'behind' ? 2 : 14, { tags: ['goal', 'track', 'retire', 'save', g.name], brief: f.status === 'behind' }))
+    out.push(fact(`goal:${g.id}`, `Your goal: ${g.name}`, `/dashboard/goals/${g.id}`, f.text, f.status === 'behind' ? 2 : 14, { tags: ['goal', 'track', 'retire', 'save', g.name], brief: f.status === 'behind', short: `${g.name}: add ${rupees(f.extra)} a month to get on track.` }))
   }
   if (!d.goals.length) out.push(fact('nogoal', 'Your goals', '/dashboard/goals', 'You have not set any goals yet. Add one and we can show whether you are on track.', 15, { tags: ['goal', 'track'] }))
 
@@ -152,7 +153,7 @@ export function buildFacts(d: PortalData): Fact[] {
       '/dashboard/todo',
       open.length ? `${open.length} ${open.length === 1 ? 'suggestion is' : 'suggestions are'} waiting for your OK: ${open.map((t) => t.title).join(' ')}` : 'Nothing is waiting for your OK right now.',
       open.length ? 1 : 16,
-      { tags: ['todo', 'action', 'suggestion', 'approve', 'pending', 'waiting'], brief: open.length > 0 },
+      { tags: ['todo', 'action', 'suggestion', 'approve', 'pending', 'waiting'], brief: open.length > 0, short: `${open.length} waiting for your OK.` },
     ),
   )
   for (const a of d.alerts.slice(0, 4)) out.push(fact(`alert:${a.id}`, a.title, a.href, `${a.title}. ${a.body}`, 17, { tags: ['alert', 'notification', 'changed'] }))
