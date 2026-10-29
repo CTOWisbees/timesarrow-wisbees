@@ -9,20 +9,20 @@ const STOP = new Set(
   ),
 )
 
-/** Each group is one idea; a word from a group also searches for the group's stems. */
-const SYNONYMS: string[][] = [
-  ['sip', 'systematic', 'monthli', 'instalment', 'installment'],
-  ['rebalanc', 'drift', 'plan', 'limit'],
-  ['harvest', 'tlh', 'loss', 'tax'],
-  ['fee', 'cost', 'charg', 'expens', 'commiss', 'ter', 'price', 'pay'],
-  ['risk', 'volatil', 'riskomet', 'safe', 'moves', 'swing'],
-  ['score', 'health', 'rate'],
-  ['goal', 'target', 'retir', 'colleg', 'educ', 'home', 'save'],
+/** Each group is one idea; a word from a group also searches for the group's other words, at a lower weight. */
+const GROUPS: string[][] = [
+  ['sip', 'systematic', 'monthly', 'instalment', 'installment'],
+  ['rebalance', 'rebalancing', 'drift', 'plan', 'limit'],
+  ['harvest', 'harvesting', 'tlh', 'loss', 'tax'],
+  ['fee', 'cost', 'charge', 'expense', 'commission', 'ter', 'price', 'pay', 'pricing'],
+  ['risk', 'volatility', 'riskometer', 'safe', 'swing'],
+  ['score', 'health', 'rating'],
+  ['goal', 'target', 'retire', 'retirement', 'college', 'education', 'home', 'save'],
   ['hold', 'own', 'portfolio', 'invest', 'fund', 'stock', 'share'],
-  ['complain', 'grievanc', 'ticket', 'escal', 'scores'],
-  ['ai', 'copilot', 'bot', 'artifici', 'intellig', 'assist'],
-  ['advis', 'advic', 'adviser', 'advisor', 'ria', 'expert'],
-  ['data', 'privaci', 'privacy', 'consent', 'delet'],
+  ['complain', 'complaint', 'grievance', 'ticket', 'escalate', 'scores'],
+  ['ai', 'copilot', 'bot', 'artificial', 'intelligence', 'assistant'],
+  ['adviser', 'advisor', 'advice', 'ria', 'expert'],
+  ['data', 'privacy', 'consent', 'delete'],
 ]
 
 /** Plural and common verb endings off, so "funds" matches "fund" and "investing" matches "invest". */
@@ -38,6 +38,9 @@ export function stem(word: string) {
   if (w.length > 4 && w.endsWith('y')) w = w.slice(0, -1) + 'i'
   return w
 }
+
+/** The groups as stems, built once, because retrieval compares stems. */
+const SYNONYMS: string[][] = GROUPS.map((g) => [...new Set(g.map((w) => stem(w)))])
 
 const WORD = /[a-z0-9₹%.]+/g
 
@@ -60,4 +63,27 @@ export function queryTerms(text: string): { term: string; weight: number }[] {
     for (const group of SYNONYMS)
       if (group.includes(t)) for (const s of group) if (!seen.has(s)) seen.set(s, 0.35)
   return [...seen].map(([term, weight]) => ({ term, weight }))
+}
+
+/** The question's own words, lowercase, without stop words. Postgres stems them itself. */
+export function searchWords(text: string): string[] {
+  const out: string[] = []
+  for (const raw of text.toLowerCase().replace(/[’']/g, '').match(/[a-z][a-z0-9]*/g) ?? []) {
+    if (raw.length < 2 || STOP.has(raw)) continue
+    if (!out.includes(raw)) out.push(raw)
+  }
+  return out
+}
+
+/** Stems from the synonym groups that the question touches, to search as prefixes at a lower weight. */
+export function synonymPrefixes(text: string): string[] {
+  return queryTerms(text)
+    .filter((t) => t.weight < 1)
+    .map((t) => t.term)
+    .filter((t) => /^[a-z][a-z0-9]{2,}$/.test(t))
+}
+
+/** The other stems in the same synonym group as a stem, if it belongs to one. */
+export function synonymsOf(stemmed: string): string[] {
+  return [...new Set(SYNONYMS.filter((g) => g.includes(stemmed)).flat())].filter((t) => t !== stemmed)
 }

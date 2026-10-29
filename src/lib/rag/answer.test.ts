@@ -5,10 +5,12 @@ import type { PortalData } from '@/lib/portal/types'
 
 import { answerWith } from './answer'
 import { Bm25 } from './bm25'
+import { MIN_COVERAGE } from './coverage'
 import { hasPromise, isAdviceSeeking, numbersGrounded } from './guard'
+import { KNOWLEDGE_CASES, UNANSWERABLE } from './eval-cases'
 import { staticChunks } from './static-knowledge'
 
-const knowledge = new Bm25(staticChunks())
+const knowledge = new Bm25(staticChunks(), { minCoverage: MIN_COVERAGE })
 const sample = buildSample()
 const ask = (q: string, data: PortalData = sample, generate?: Parameters<typeof answerWith>[0]['generate']) => answerWith({ question: q, data, knowledge, generate })
 
@@ -71,7 +73,7 @@ describe('questions about WisBees are answered from published knowledge, with a 
     ['How do you use AI?', /AI/, 'How we use AI: What the AI does not do'],
     ['Do you place orders for me?', /never holds your money/i, 'You stay in charge'],
     ['How do I make a complaint?', /ticket/i, 'How to make a complaint'],
-    ['What is tax loss harvesting?', /selling an investment/i, 'Saving tax on a loss'],
+    ['What is tax loss harvesting?', /selling an investment/i, 'Save tax on losses (tax-loss harvesting)'],
     ['What is the last day to book losses for the tax year?', /31 March/, 'Saving tax on a loss'],
     ['What is a SIF and what is the minimum?', /₹10 lakh/, 'Specialised investment funds (SIFs)'],
     ['Where is my data stored?', /India/, 'Your data and consent'],
@@ -89,7 +91,7 @@ describe('questions about WisBees are answered from published knowledge, with a 
 
 describe('behaviour at the edges', () => {
   it('says so when it has nothing to go on, instead of guessing', async () => {
-    for (const q of ['quantum chromodynamics of flamingos', 'zzzz qqqq', 'what is the weather in Pune']) {
+    for (const q of UNANSWERABLE) {
       const a = await ask(q)
       expect(a.intent).toBe('low-confidence')
       expect(a.handedOver).toBe(true)
@@ -142,5 +144,13 @@ describe('output checks', () => {
   it('checks numbers against the context', () => {
     expect(numbersGrounded('You hold ₹10,26,136 across 6 holdings', 'worth ₹10,26,136 in total')).toBe(true)
     expect(numbersGrounded('You hold ₹99,999', 'worth ₹10,26,136')).toBe(false)
+  })
+})
+
+describe('the shared evaluation cases hold against the shipped content', () => {
+  it.each(KNOWLEDGE_CASES)('%s -> %s', async (q, title) => {
+    const a = await ask(q)
+    expect(a.intent).toBe('answer')
+    expect(a.sources.map((s) => s.title)).toContain(title)
   })
 })

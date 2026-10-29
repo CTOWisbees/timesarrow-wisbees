@@ -98,15 +98,18 @@ chatbot) build on this same app.
   Deleting a user's data keeps tickets and the AI log (compliance records).
 - Suggestions (To Do) are derived from real numbers: equity above the risk limit, holdings below cost, goals behind.
   Ids are stable so an answer sticks. **Approving only records the decision**: WisBees places no orders.
-- **Copilot is a RAG** (`src/lib/rag/`). Retrieval is BM25 over two stores: the client's own facts (`facts.ts`, built
-  per request from their data, so one client's data can never answer another's) and published knowledge
-  (`static-knowledge.ts` plus published CMS FAQs, SEBI disclosure and Port Scan wording in `knowledge.ts`, rebuilt every
-  10 minutes). `answer.ts` retrieves, answers only from what it retrieved, cites sources, and hands advice-seeking or
-  low-confidence questions to the adviser. With `ANTHROPIC_API_KEY` set, a model rephrases the retrieved text (`llm.ts`);
-  its output is dropped if it adds a number the sources lack or promises returns. Without a key the answer is extractive.
-  The Home brief, the goal coach and the explainers on To Do suggestions read from the same stores. Every answer is
-  logged (`portal.ai_log`: sources, confidence, mode, `RAG_VERSION`). Add facts to `facts.ts` and knowledge to
-  `static-knowledge.ts`, with a test in `answer.test.ts`; bump `RAG_VERSION` when ranking or rules change.
+- **Copilot is a RAG** (`src/lib/rag/`). It retrieves from two stores. The client's own facts (`facts.ts`) are built per
+  request from their data and never stored, so one client's data can never answer another's. The published knowledge
+  (`static-knowledge.ts` plus published CMS FAQs, SEBI disclosure and Port Scan wording in `knowledge-sync.ts`) lives in
+  Postgres, i.e. Supabase in production, in `rag.chunks` (migration `20261025_150000_rag_knowledge`) and is searched there
+  with full-text search (`pg-store.ts`). The app syncs the table by itself every 10 minutes; `pnpm rag:index` forces it and
+  `pnpm rag:check` runs `eval-cases.ts` against what is stored. If the database cannot be reached it falls back to the
+  shipped content in memory. `answer.ts` answers only from what it retrieved, cites sources, and hands advice-seeking or
+  low-confidence questions to the adviser. **No API key is needed.** If `ANTHROPIC_API_KEY` is set, a model rephrases the
+  retrieved text (`llm.ts`); its output is dropped if it adds a number the sources lack or promises returns, and the
+  retrieved text then leaves the system. The Home brief, the goal coach and the explainers on To Do suggestions read from the
+  same stores. Every answer is logged (`portal.ai_log`: sources, confidence, mode, `RAG_VERSION`). Add facts to `facts.ts`
+  and knowledge to `static-knowledge.ts`, with a case in `eval-cases.ts`; bump `RAG_VERSION` when ranking or rules change.
 - Dashboard colours use the site's tokens and `CLASS_COLORS` from Port Scan; there is no theme switch (the site is light-only).
 - `docs/brd-coverage.md` lists every BRD requirement and whether it is built.
 - Not real yet: Account Aggregator, CAMS/KFintech and broker links, adviser chat, documents, family invites, invoices,

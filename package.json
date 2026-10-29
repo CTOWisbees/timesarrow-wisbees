@@ -14,6 +14,8 @@
     "payload": "payload",
     "seed": "payload run src/seed/index.ts",
     "market": "payload run src/scripts/market/load.ts",
+    "rag:index": "payload run src/scripts/rag/index.ts index",
+    "rag:check": "payload run src/scripts/rag/index.ts check",
     "scan:nightly": "curl -fsS \"http://localhost:3000/api/portfolio/cron?force=${FORCE:-0}\"",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",

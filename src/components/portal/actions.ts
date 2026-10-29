@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 import type { RagAnswer } from '@/lib/rag/answer'
 import { coachGoal } from '@/lib/rag/coach'
-import { getKnowledgeIndex } from '@/lib/rag/knowledge'
+import { getKnowledge } from '@/lib/rag/knowledge'
 import { askRag, RAG_VERSION } from '@/lib/rag/server'
 import { loadPortalData } from '@/lib/portal/load'
 import { createGoal, createTicket, deleteGoal, deletePortalData, listGoals, logAnswer, saveDecision, updateGoal } from '@/lib/portal/store'
@@ -108,7 +108,7 @@ export async function coachGoalAction(goalId: string, monthly: number, annualRet
   if (!goal) return null
   const m = Math.max(0, Math.min(10_000_000, Math.round(Number(monthly) || 0)))
   const r = [0.08, 0.1, 0.12].includes(annualReturn) ? annualReturn : 0.1
-  return coachGoal(goal, m, r, await getKnowledgeIndex())
+  return coachGoal(goal, m, r, await getKnowledge())
 }
 
 /** Deletes the client's saved portfolios, goals and answers. Complaints and the AI log are kept as compliance records. */

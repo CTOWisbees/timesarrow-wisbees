@@ -11,7 +11,7 @@ import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
 import { ASSUMED_RETURN, buildSample, NOW_YEAR } from './data'
 import { briefFor } from '@/lib/rag/brief'
 import { lead } from '@/lib/rag/answer'
-import { getKnowledgeIndex } from '@/lib/rag/knowledge'
+import { getKnowledge } from '@/lib/rag/knowledge'
 
 import { equityLimitFrom, shareLabel } from './derive'
 import { extraMonthlyNeeded, goalStatus, projectGoal, rebalanceAmount } from './math'
@@ -50,11 +50,13 @@ const EXPLAIN_QUERY = { rebalance: 'bringing your mix back to plan rebalance sha
 
 /** Adds what the Copilot writes: the brief from the client's facts, and an explainer for each suggestion retrieved from published knowledge. */
 async function withCopilot(data: PortalData): Promise<PortalData> {
-  const knowledge = await getKnowledgeIndex()
-  const todos = data.todos.map((t) => {
-    const hit = knowledge.search(EXPLAIN_QUERY[t.kind], 1)[0]?.chunk
-    return hit ? { ...t, explainer: { text: lead(hit.text, 320), title: hit.title, url: hit.url } } : t
-  })
+  const knowledge = await getKnowledge()
+  const todos = await Promise.all(
+    data.todos.map(async (t) => {
+      const hit = (await knowledge.search(EXPLAIN_QUERY[t.kind], 1))[0]?.chunk
+      return hit ? { ...t, explainer: { text: lead(hit.text, 320), title: hit.title, url: hit.url } } : t
+    }),
+  )
   const next = { ...data, todos }
   return { ...next, brief: briefFor(next).lines }
 }

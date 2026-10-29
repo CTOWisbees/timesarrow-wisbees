@@ -59,7 +59,7 @@ integration, staff tooling or a licence decision). Priorities are the BRD's: P1 
 
 | ID | Feature | Status | Notes |
 |---|---|---|---|
-| AI-01 | Ask Copilot | Built | RAG: client facts + published knowledge, cited, logged, hands over advice and low-confidence questions |
+| AI-01 | Ask Copilot | Built | RAG: the client's facts plus published knowledge stored in Postgres/Supabase (`rag.chunks`, full-text search); cited, logged, hands over advice and low-confidence questions. No API key needed |
 | AI-02 | Daily and weekly brief | Built | Read from the same fact store; one daily brief, no weekly digest yet |
 | AI-03 | Plain-English explainer | Partial | Glossary and explainers on suggestions. Document upload not built |
 | AI-04 | Proactive alerts | Partial | Rules-driven alerts; the Copilot does not speak first |
@@ -75,5 +75,5 @@ integration, staff tooling or a licence decision). Priorities are the BRD's: P1 
 - AI disclosure on every Copilot screen, and every answer logged with sources, confidence and the rules version. **Built.**
 - Below the confidence threshold the Copilot hands over to the adviser. **Built, tested.**
 - A numbers check: a model may only use numbers that appear in the sources. **Built, tested.**
-- Test set of at least 200 compliance-reviewed prompts before each release. **Partial**: 52 prompts in `src/lib/rag/answer.test.ts`; compliance has not reviewed them.
+- Test set of at least 200 compliance-reviewed prompts before each release. **Partial**: about 90 prompts in `src/lib/rag/` (`answer.test.ts`, `eval-cases.ts`); compliance has not reviewed them.
 - Data stored in India and vendor contracts bar training: **a deployment and contract matter**, not code. The Copilot works without any model vendor; when `ANTHROPIC_API_KEY` is set, retrieved text and the question are sent to that vendor.

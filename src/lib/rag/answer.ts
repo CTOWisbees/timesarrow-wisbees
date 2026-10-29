@@ -1,7 +1,8 @@
 import type { PortalData } from '@/lib/portal/types'
 
-import { Bm25, type Chunk, type Hit } from './bm25'
+import { Bm25, type Chunk, type Hit, type Retriever } from './bm25'
 import { buildFacts } from './facts'
+import { MIN_COVERAGE } from './coverage'
 import { hasPromise, isAdviceSeeking, numbersGrounded } from './guard'
 import { queryTerms, tokens } from './text'
 
@@ -24,7 +25,7 @@ export type RagAnswer = {
 
 export type Generator = (question: string, hits: Hit[]) => Promise<string | null>
 
-const MIN_SCORE = 2.4
+export const MIN_SCORE = 2.4
 const FIRST_PERSON = /\b(my|mine|i|me|am i|do i|have i|i'm|im)\b/i
 const ABOUT_US = /\b(you|your|wisbees|bees|plan|plans|plus|essentials|private|subscription|pricing|sebi|flat)\b/i
 const SMALLTALK = /^\s*(hi|hello|hey|namaste|good (morning|afternoon|evening)|thanks|thank you|ok|okay)\b[\s!.?]*$/i
@@ -96,7 +97,7 @@ const actionsOf = (sources: Source[]): [string, string][] =>
  * answer when one is configured, but only over the retrieved text, and its output is dropped if it adds a number
  * the sources lack or promises returns. Advice-seeking and low-confidence questions go to the adviser.
  */
-export async function answerWith({ question, data, knowledge, generate }: { question: string; data: PortalData; knowledge: Bm25; generate?: Generator }): Promise<RagAnswer> {
+export async function answerWith({ question, data, knowledge, generate }: { question: string; data: PortalData; knowledge: Retriever; generate?: Generator }): Promise<RagAnswer> {
   const q = question.trim()
   if (!q) return { ...HANDOVER, text: 'Type a question and I will look at your numbers.', actions: [], handedOver: false, intent: 'error', confidence: 0 }
   if (SMALLTALK.test(q)) return { text: 'Hello! Ask me about your money, such as your score, costs, risk or goals, or how something at WisBees works.', sources: [], actions: [], intent: 'smalltalk', handedOver: false, confidence: 1, mode: 'none' }
@@ -109,7 +110,7 @@ export async function answerWith({ question, data, knowledge, generate }: { ques
     }
 
   const facts = buildFacts(data)
-  const clientIndex = new Bm25(facts)
+  const clientIndex = new Bm25(facts, { minCoverage: MIN_COVERAGE })
   const personal = FIRST_PERSON.test(q)
   const aboutUs = !personal && ABOUT_US.test(q)
 
@@ -119,7 +120,7 @@ export async function answerWith({ question, data, knowledge, generate }: { ques
   }
 
   const clientHits = clientIndex.search(q, 4).map((h) => ({ ...h, score: h.score * (personal ? 1.3 : aboutUs ? 0.7 : 0.9) }))
-  const publicHits = knowledge.search(q, 4).map((h) => ({ ...h, score: h.score * (personal ? 0.9 : aboutUs ? 1.5 : 1.15) }))
+  const publicHits = (await knowledge.search(q, 4)).map((h) => ({ ...h, score: h.score * (personal ? 0.9 : aboutUs ? 1.5 : 1.15) }))
   const hits = [...clientHits, ...publicHits].sort((a, b) => b.score - a.score)
 
   const top = hits[0]?.score ?? 0
@@ -132,9 +133,15 @@ export async function answerWith({ question, data, knowledge, generate }: { ques
       confidence,
     }
 
-  const chosen = pick(hits)
+  let chosen = pick(hits)
+  const write = (hs: Hit[]) => hs.map((h) => (h.chunk.scope === 'client' ? h.chunk.text : relevant(h.chunk.text, q, 300))).join(' ')
+  let extractive = write(chosen)
+  // Keep an answer readable: drop the weakest source rather than run past about 650 characters.
+  while (extractive.length > 650 && chosen.length > 1) {
+    chosen = chosen.slice(0, -1)
+    extractive = write(chosen)
+  }
   const sources = sourcesOf(chosen)
-  const extractive = chosen.map((h) => (h.chunk.scope === 'client' ? h.chunk.text : relevant(h.chunk.text, q, 300))).join(' ')
 
   let text = extractive
   let mode: RagAnswer['mode'] = 'extractive'

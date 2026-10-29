@@ -1,3 +1,4 @@
+import { coverage } from './coverage'
 import { queryTerms, tokens } from './text'
 
 export type Chunk = {
@@ -15,6 +16,9 @@ export type Chunk = {
 
 export type Hit = { chunk: Chunk; score: number }
 
+/** Anything that can find chunks for a question: the database search in production, or an in-memory index. */
+export type Retriever = { search(query: string, k?: number): Hit[] | Promise<Hit[]> }
+
 const K1 = 1.4
 const B = 0.72
 
@@ -24,7 +28,10 @@ export class Bm25 {
   private df = new Map<string, number>()
   private avg = 0
 
-  constructor(chunks: Chunk[]) {
+  private minCoverage: number
+
+  constructor(chunks: Chunk[], opts: { minCoverage?: number } = {}) {
+    this.minCoverage = opts.minCoverage ?? 0
     for (const chunk of chunks) {
       const toks = tokens(`${chunk.title} ${chunk.title} ${(chunk.tags ?? []).join(' ')} ${chunk.text}`)
       const tf = new Map<string, number>()
@@ -52,7 +59,7 @@ export class Bm25 {
         const idf = Math.log(1 + (N - n + 0.5) / (n + 0.5))
         score += weight * idf * ((f * (K1 + 1)) / (f + K1 * (1 - B + (B * d.len) / this.avg)))
       }
-      if (score > 0) hits.push({ chunk: d.chunk, score })
+      if (score > 0 && (this.minCoverage === 0 || coverage(query, d.chunk) >= this.minCoverage)) hits.push({ chunk: d.chunk, score })
     }
     return hits.sort((a, b) => b.score - a.score).slice(0, k)
   }
