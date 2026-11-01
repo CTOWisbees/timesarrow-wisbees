@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, Loader2 } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { Button } from '@/components/ui/button'
@@ -170,10 +170,10 @@ function Drawdown({ d, benchmark }: { d: DrawdownCard; benchmark: string }) {
   return (
     <div className="space-y-4 text-sm">
       <div className="flex flex-wrap gap-x-8 gap-y-3">
-        <Stat label="Worst fall" value={`−${pct(d.maxDrawdown)}`} note={`${fmt(d.peakDate)} to ${fmt(d.troughDate)}`} />
+        <Stat label="Peak to bottom" value={`−${pct(d.maxDrawdown)}`} note={`${fmt(d.peakDate)} to ${fmt(d.troughDate)}`} />
         <Stat label="Recovered in" value={d.recoveryDays === null ? 'Not yet' : `${Math.round(d.recoveryDays / 30)} months`} />
         <Stat label="Below its peak now" value={pct(d.current)} />
-        {d.benchmarkMaxDrawdown !== null && <Stat label={`${benchmark} worst fall`} value={`−${pct(d.benchmarkMaxDrawdown)}`} />}
+        {d.benchmarkMaxDrawdown !== null && <Stat label={`${benchmark} peak to bottom`} value={`−${pct(d.benchmarkMaxDrawdown)}`} />}
       </div>
       <TwoLines points={d.points} benchmark={benchmark} format={(v) => `${Math.round(v * 100)}`} />
       <p className="text-muted-foreground text-xs">
@@ -349,12 +349,17 @@ function WhatIf({ portfolioId }: { portfolioId: string }) {
       const r = await whatIf(portfolioId, list)
       if (r.ok) setNext(r)
     })
+  // Open from the start: the holdings load as soon as the card appears.
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [portfolioId])
   if (!base)
     return (
-      <Button variant="outline" onClick={load} disabled={pending}>
-        {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
-        Try a change
-      </Button>
+      <p className="text-ink-soft flex items-center gap-2 text-sm" aria-busy="true">
+        <Loader2 className="size-4 animate-spin" aria-hidden />
+        Loading your holdings…
+      </p>
     )
   return (
     <div className="space-y-4 text-sm">

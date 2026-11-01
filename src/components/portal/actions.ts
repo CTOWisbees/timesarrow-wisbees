@@ -70,7 +70,7 @@ export async function removeGoal(id: string) {
 export async function answerSuggestion(id: string, decision: 'approved' | 'declined') {
   const o = await owner()
   if (!o) return fail
-  const data = await loadPortalData(o)
+  const data = await loadPortalData(o, { copilot: false })
   const todo = data.todos.find((t) => t.id === id)
   if (!todo) return { ok: false as const, error: 'This suggestion is no longer current. Refresh the page.' }
   await saveDecision(o.id, todo.id, todo.kind, decision, { title: todo.title, details: todo.details, shownAt: new Date().toISOString() })
@@ -95,7 +95,7 @@ export async function askCopilot(question: string): Promise<RagAnswer> {
   const o = await owner()
   const q = String(question ?? '').trim().slice(0, 500)
   if (!o || !q) return { text: 'Please sign in and type a question.', sources: [], actions: [], intent: 'error', handedOver: false, confidence: 0, mode: 'none' }
-  const answer = await askRag(q, await loadPortalData(o))
+  const answer = await askRag(q, await loadPortalData(o, { copilot: false }))
   await logAnswer(o.id, { question: q, answer: answer.text, intent: answer.intent, handedOver: answer.handedOver, version: RAG_VERSION, sources: answer.sources, confidence: answer.confidence, mode: answer.mode })
   return answer
 }

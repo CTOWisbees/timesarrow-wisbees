@@ -146,21 +146,43 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
       {/* P2: how it behaves. */}
       <div className="space-y-6">
         <PlansIntro view={view} copy={copy} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Panel title={copy.blocks.risk}>
-            {summary.volatility.annual !== null && summary.volatility.benchmarkAnnual !== null ? (
-              <p className="text-ink-soft text-sm leading-relaxed">
-                {fill(copy.riskSentence, {
-                  annual: (summary.volatility.annual * 100).toFixed(1),
-                  benchmarkAnnual: (summary.volatility.benchmarkAnnual * 100).toFixed(1),
-                  benchmark: view.benchmark.name,
-                })}
-              </p>
-            ) : (
-              <p className="text-muted-foreground text-sm">Not enough price history to measure this.</p>
-            )}
-          </Panel>
-          <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['drawdown', 'returns']} />
+        <div className="grid items-start gap-6 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col gap-6">
+            <Panel title={copy.blocks.risk}>
+              {summary.volatility.annual !== null && summary.volatility.benchmarkAnnual !== null ? (
+                <div className="space-y-5">
+                  <p className="text-ink-soft text-sm leading-relaxed">
+                    {fill(copy.riskSentence, {
+                      annual: (summary.volatility.annual * 100).toFixed(1),
+                      benchmarkAnnual: (summary.volatility.benchmarkAnnual * 100).toFixed(1),
+                      benchmark: view.benchmark.name,
+                    })}
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      ['Your portfolio', summary.volatility.annual, 'bg-primary'],
+                      [view.benchmark.name, summary.volatility.benchmarkAnnual, 'bg-mint-strong'],
+                    ].map(([label, v, colour]) => (
+                      <div key={label as string}>
+                        <div className="flex justify-between text-sm">
+                          <span>{label as string}</span>
+                          <b className="tabular-nums">{((v as number) * 100).toFixed(1)}% a year</b>
+                        </div>
+                        <div className="bg-mist mt-1 h-2.5 overflow-hidden rounded-full">
+                          <i className={cn('block h-full rounded-full', colour as string)} style={{ width: `${Math.min(100, ((v as number) / Math.max(summary.volatility.annual!, summary.volatility.benchmarkAnnual!)) * 100)}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground text-xs">How far each moved up and down over the last year. A longer bar means bigger swings.</p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">Not enough price history to measure this.</p>
+              )}
+            </Panel>
+            <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['returns']} />
+          </div>
+          <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['drawdown']} />
         </div>
       </div>
 
@@ -205,7 +227,7 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
           )}
           {view.benchmark.note && <p className="text-muted-foreground mt-3 text-xs">{view.benchmark.note}</p>}
         </Panel>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid items-start gap-6 lg:grid-cols-2">
           <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['overlap', 'drag']} />
         </div>
       </section>
@@ -213,7 +235,9 @@ export function Results({ view, copy, signedIn, demoMode, onRestart, onView }: P
       {/* P5: deeper tools. */}
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['stress', 'ratios']} pair={['stress', 'ratios']} />
-        <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['rebalance', 'whatif']} />
+        <div className="flex min-w-0 flex-col gap-6">
+          <PaidCards view={view} copy={copy} onUnlock={unlock} ids={['rebalance', 'whatif']} />
+        </div>
       </div>
 
       {/* 10. Data quality and disclaimer */}

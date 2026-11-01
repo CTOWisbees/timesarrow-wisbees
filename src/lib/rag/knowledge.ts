@@ -14,12 +14,19 @@ let syncing: Promise<void> | null = null
 
 type AppPayload = Awaited<ReturnType<typeof getPayloadClient>>
 
+/**
+ * Keeps the stored knowledge fresh without ever making a client wait for it. The very first call (an empty table) waits
+ * once; after that a refresh runs in the background every ten minutes while requests carry on with what is stored.
+ */
 async function ensureFresh(payload: AppPayload) {
   if (Date.now() - lastSync < TTL_MS) return
-  syncing ??= syncKnowledge(payload.db.pool as unknown as Db, payload)
-    .then(() => void (lastSync = Date.now()))
-    .finally(() => void (syncing = null))
-  await syncing
+  const refresh = () =>
+    (syncing ??= syncKnowledge(payload.db.pool as unknown as Db, payload)
+      .then(() => void (lastSync = Date.now()))
+      .catch(() => void (lastSync = Date.now() - TTL_MS + 60_000)) // try again in a minute
+      .finally(() => void (syncing = null)))
+  if (lastSync === 0) await refresh()
+  else void refresh()
 }
 
 let fallback: Bm25 | null = null

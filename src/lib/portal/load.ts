@@ -43,8 +43,10 @@ export type Owner = { id: string; name: string } | null
  * latest result, the risk profile from onboarding, their goals, answers and alerts. In local demo
  * mode a client with no portfolio sees the example family instead; in production there is no sample.
  */
-export async function loadPortalData(owner: Owner): Promise<PortalData> {
-  return withCopilot(await loadBase(owner))
+/** `copilot: false` skips the brief and the explainers, for callers that only need the numbers (answering a question, saving a decision). */
+export async function loadPortalData(owner: Owner, opts: { copilot?: boolean } = {}): Promise<PortalData> {
+  const base = await loadBase(owner)
+  return opts.copilot === false ? base : withCopilot(base)
 }
 
 const EXPLAIN_QUERY = { rebalance: 'bringing your mix back to plan rebalance shares limit', harvest: 'saving tax on a loss tax-loss harvesting', sip: 'how goal projections work close the gap' } as const
