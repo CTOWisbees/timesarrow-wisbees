@@ -27,6 +27,8 @@ export type Generator = (question: string, hits: Hit[]) => Promise<string | null
 
 export const MIN_SCORE = 2.4
 const FIRST_PERSON = /\b(my|mine|i|me|am i|do i|have i|i'm|im)\b/i
+/** Words common to many holding names, so naming one of them does not single a holding out. */
+const GENERIC_NAME = new Set(['ltd', 'limit', 'fund', 'india', 'indian', 'industri', 'bank', 'direct', 'growth', 'plan', 'index', 'nifti', 'cap', 'flexi', 'account', 'saving'])
 const ABOUT_US = /\b(you|your|wisbees|bees|plan|plans|plus|essentials|private|subscription|pricing|sebi|flat)\b/i
 const SMALLTALK = /^\s*(hi|hello|hey|namaste|good (morning|afternoon|evening)|thanks|thank you|ok|okay)\b[\s!.?]*$/i
 
@@ -82,7 +84,7 @@ function pick(hits: Hit[]): Hit[] {
   const chosen = [top]
   for (const h of hits.slice(1)) {
     if (chosen.length >= 3) break
-    if (h.chunk.scope === top.chunk.scope && h.score >= top.score * (chosen.length === 1 ? 0.55 : 0.7) && !chosen.some((c) => c.chunk.title === h.chunk.title)) chosen.push(h)
+    if (h.chunk.scope === top.chunk.scope && h.score >= top.score * (chosen.length === 1 ? 0.75 : 0.85) && !chosen.some((c) => c.chunk.title === h.chunk.title)) chosen.push(h)
   }
   return chosen
 }
@@ -119,7 +121,12 @@ export async function answerWith({ question, data, knowledge, generate }: { ques
     return { text: none.text, sources: [{ title: none.title, url: none.url }], actions: [['Add my holdings', '/portfolio-scan']], intent: 'no-data', handedOver: false, confidence: 1, mode: 'none' }
   }
 
-  const clientHits = clientIndex.search(q, 4).map((h) => ({ ...h, score: h.score * (personal ? 1.3 : aboutUs ? 0.7 : 0.9) }))
+  const asked = new Set(tokens(q))
+  // A question that names one of the client's holdings is about that holding.
+  const named = (h: Hit) => h.chunk.id.startsWith('hold:') && tokens(h.chunk.title).some((t) => t.length >= 4 && !GENERIC_NAME.has(t) && asked.has(t))
+  const clientHits = clientIndex
+    .search(q, 4)
+    .map((h) => ({ ...h, score: h.score * (personal ? 1.3 : aboutUs ? 0.7 : 0.9) * (named(h) ? 2 : 1) }))
   const publicHits = (await knowledge.search(q, 4)).map((h) => ({ ...h, score: h.score * (personal ? 0.9 : aboutUs ? 1.5 : 1.15) }))
   const hits = [...clientHits, ...publicHits].sort((a, b) => b.score - a.score)
 

@@ -30,6 +30,15 @@ export function staticChunks(): Chunk[] {
     )
   out.push(
     pub(
+      'plans:overview',
+      'Plans and prices',
+      '/fees',
+      `WisBees offers four plans: ${tiers.map((t) => `${t.name} ${t.price}${t.unit ? ` ${t.unit}` : ''}`).join('; ')}. The Port Scan and calculators are free.`,
+      ['plans', 'pricing', 'subscription', 'price'],
+    ),
+  )
+  out.push(
+    pub(
       'plans:cap',
       'Fee cap',
       '/fees',
@@ -37,9 +46,9 @@ export function staticChunks(): Chunk[] {
       ['cap', 'limit', 'sebi'],
     ),
   )
-  for (const [t, d] of feePrinciples) out.push(pub(`fees:${t}`, t, '/fees', `${t}. ${d}`, ['fee', 'charge']))
+  for (const [t, d] of feePrinciples) out.push(pub(`fees:${t}`, t, '/fees', `${t}: ${d}`, ['fee', 'charge']))
 
-  for (const s of aiSections) out.push(pub(`ai:${s.title}`, `How we use AI: ${s.title}`, '/ai-disclosure', `${s.title}. ${s.items.join(' ')}`, ['ai', 'copilot', 'data']))
+  for (const s of aiSections) out.push(pub(`ai:${s.title}`, `How we use AI: ${s.title}`, '/ai-disclosure', `${s.title}: ${s.items.join(' ')}`, ['ai', 'copilot', 'data']))
 
   for (const c of CALCULATORS)
     out.push(pub(`calc:${c.slug}`, c.name, `/tools/${c.slug}`, `${c.name}. ${c.summary} ${c.method.intro} Formulas: ${c.method.formulas.join('; ')}.`, ['calculator', 'formula', 'method']))
@@ -48,10 +57,17 @@ export function staticChunks(): Chunk[] {
     pub('consult', 'Conversations with your adviser', '/dashboard/talk', `You can book: ${consultations.map((c) => `${c.type} (${c.note})`).join('; ')}.`, ['call', 'book', 'adviser', 'consultation']),
     pub(
       'rule:non-discretionary',
-      'You stay in charge',
+      'You approve every order',
       '/dashboard/todo',
       'WisBees is a non-discretionary adviser. Software calculates and recommends, and prepares orders; you approve and place them in your own demat or mutual fund account. WisBees never holds your money or moves it on its own, so "automated" means automatic preparation with one-tap approval.',
       ['approve', 'order', 'discretion', 'automatic', 'control'],
+    ),
+    pub(
+      'rule:custody',
+      'Is my money safe with WisBees?',
+      '/fees',
+      'WisBees never holds your money or securities. You invest through your own mutual fund and demat accounts, so your money is not with us and we cannot move it. We are a SEBI-registered, fee-only adviser, paid only your flat fee. Your data is encrypted and stored in India.',
+      ['safe', 'custody', 'safety', 'trust', 'hold', 'secure', 'protected'],
     ),
     pub('rule:direct', 'Direct plans, no commissions', '/fees', 'WisBees recommends direct plans only and takes no commission or trail from any product, so advice is not tied to what you buy.', ['commission', 'direct', 'regular', 'trail']),
     pub(

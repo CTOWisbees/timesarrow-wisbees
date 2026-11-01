@@ -8,14 +8,16 @@ export const KNOWLEDGE_CASES: [question: string, title: string][] = [
   ['How much does the Plus plan cost?', 'Plus plan'],
   ['What is the SEBI fee cap?', 'Fee cap'],
   ['How do you use AI?', 'How we use AI: What the AI does not do'],
-  ['Do you place orders for me?', 'You stay in charge'],
+  ['Do you place orders for me?', 'You approve every order'],
   ['How do I make a complaint?', 'How to make a complaint'],
   ['What is the last day to book losses for the tax year?', 'Saving tax on a loss'],
   ['What is a SIF and what is the minimum?', 'Specialised investment funds (SIFs)'],
   ['Where is my data stored?', 'Your data and consent'],
   ['How is the step up SIP calculated?', 'Step-up SIP Calculator'],
-  ['Do you charge commission?', 'Direct plans, no commissions'],
+  ['Do you charge commission?', 'Nothing to sell'],
   ['How do the goal projections work?', 'How goal projections work'],
+  ['What plans does WisBees offer?', 'Plans and prices'],
+  ['Is my money safe with you?', 'Is my money safe with WisBees?'],
 ]
 
 /** Questions nothing published answers: the Copilot must hand these to the adviser, not guess. */

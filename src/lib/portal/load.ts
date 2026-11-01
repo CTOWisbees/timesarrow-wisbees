@@ -5,7 +5,7 @@ import { CLASS_COLORS, fill } from '@/components/portfolio-scan/shared'
 import type { AnalysisResult } from '@/lib/portfolio/analyze'
 import { ALL_FREE } from '@/lib/portfolio/entitlements'
 import type { PortfolioInput } from '@/lib/portfolio/model'
-import { getPlan, getPortfolio, getViewer, latestResult, listAlerts, listPortfolios, scoreHistory } from '@/lib/portfolio/server/store'
+import { getPlan, getPortfolio, latestResult, listAlerts, listPortfolios, scoreHistory } from '@/lib/portfolio/server/store'
 import { getPortfolioScan } from '@/lib/queries'
 import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
 
@@ -68,11 +68,12 @@ async function loadBase(owner: Owner): Promise<PortalData> {
   const empty = emptyData()
   if (!owner) return demoModeEnabled() ? buildSample() : empty
 
-  const viewer = await getViewer()
+  // The owner is already known, so there is no need to read the request's cookies to find out who is asking.
+  const viewer = { userId: owner.id, sessionId: null, demo: false }
   const [goals, decisions, plan, application, portfolios, copy] = await Promise.all([
     listGoals(owner.id),
     listDecisions(owner.id),
-    getPlan({ ...viewer, userId: owner.id }),
+    getPlan(viewer),
     findApplication(owner.id).catch(() => null),
     listPortfolios(owner.id),
     getPortfolioScan(),
@@ -85,7 +86,7 @@ async function loadBase(owner: Owner): Promise<PortalData> {
     return { ...base, alerts: [] }
   }
 
-  const [stored, last, history, alerts] = await Promise.all([getPortfolio(current.id, { ...viewer, userId: owner.id }), latestResult(current.id), scoreHistory(current.id), listAlerts(owner.id, 8)])
+  const [stored, last, history, alerts] = await Promise.all([getPortfolio(current.id, viewer), latestResult(current.id), scoreHistory(current.id), listAlerts(owner.id, 8)])
   if (!stored || !last) return base
 
   const result = last.result

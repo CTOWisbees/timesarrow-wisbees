@@ -71,14 +71,14 @@ describe('questions about WisBees are answered from published knowledge, with a 
     ['How much does the Plus plan cost?', /₹1,999/, 'Plus plan'],
     ['What is the SEBI fee cap?', /₹1\.51 lakh/, 'Fee cap'],
     ['How do you use AI?', /AI/, 'How we use AI: What the AI does not do'],
-    ['Do you place orders for me?', /never holds your money/i, 'You stay in charge'],
+    ['Do you place orders for me?', /never holds your money/i, 'You approve every order'],
     ['How do I make a complaint?', /ticket/i, 'How to make a complaint'],
     ['What is tax loss harvesting?', /selling an investment/i, 'Save tax on losses (tax-loss harvesting)'],
     ['What is the last day to book losses for the tax year?', /31 March/, 'Saving tax on a loss'],
     ['What is a SIF and what is the minimum?', /₹10 lakh/, 'Specialised investment funds (SIFs)'],
     ['Where is my data stored?', /India/, 'Your data and consent'],
     ['How is the step up SIP calculated?', /step-up/i, 'Step-up SIP Calculator'],
-    ['Do you charge commission?', /commission/i, 'Direct plans, no commissions'],
+    ['Do you charge commission?', /commission/i, 'Nothing to sell'],
     ['How do the goal projections work?', /10%/, 'How goal projections work'],
   ]
   it.each(cases)('%s', async (q, text, title) => {
@@ -86,6 +86,29 @@ describe('questions about WisBees are answered from published knowledge, with a 
     expect(a.intent).toBe('answer')
     expect(a.text).toMatch(text)
     expect(a.sources.map((s) => s.title)).toContain(title)
+  })
+})
+
+describe('retrieval quality', () => {
+  it('answers about a named holding from that holding, not from a generic chunk', async () => {
+    const a = await ask('how much is in reliance?', { ...sample, holdings: [...sample.holdings, { name: 'Reliance Industries Ltd', kind: 'Stock', value: 265_000, weight: 25.8, gainPct: null }] })
+    expect(a.sources.map((s) => s.title)).toContain('Reliance Industries Ltd')
+    expect(a.text).toContain('₹2,65,000')
+  })
+
+  it('counts what the client holds', async () => {
+    const a = await ask('how many funds do I have?')
+    expect(a.sources.map((s) => s.title)).toContain('What you hold')
+    expect(a.text).toMatch(/\d+ (investments|investment)/)
+  })
+
+  it('does not add an unrelated second source because of the word ok', async () => {
+    const a = await ask('is my risk ok?')
+    expect(a.sources.map((s) => s.title)).not.toContain('Waiting for your OK')
+  })
+
+  it('never shows an unfilled {placeholder}', async () => {
+    for (const q of ['how many funds do I have?', 'what stands out in my score?', 'why is my portfolio swinging', 'tell me about sector funds']) expect((await ask(q)).text).not.toMatch(/\{\w+\}/)
   })
 })
 

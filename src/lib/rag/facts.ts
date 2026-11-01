@@ -77,6 +77,19 @@ export function buildFacts(d: PortalData): Fact[] {
         ),
       )
 
+    const kinds = new Map<string, number>()
+    for (const h of d.holdings) kinds.set(h.kind, (kinds.get(h.kind) ?? 0) + 1)
+    out.push(
+      fact(
+        'count',
+        'What you hold',
+        '/dashboard/money',
+        `You hold ${d.holdings.length} ${d.holdings.length === 1 ? 'investment' : 'investments'}: ${[...kinds].map(([k, n]) => `${n} ${k.toLowerCase()}${n === 1 ? '' : 's'}`).join(', ')}.`,
+        18,
+        { tags: ['how many', 'count', 'number', 'funds', 'stocks', 'holdings', 'investments', 'what do i own', 'have'] },
+      ),
+    )
+
     const top = d.biggest[0]
     if (top) out.push(fact('top', 'Your biggest holding', '/dashboard/money', `Your biggest holding is ${top.name} at ${pct(top.share)} of your money${top.share >= 20 ? ', which is a lot in one place' : ''}.`, top.share >= 20 ? 2 : 9, { tags: ['biggest', 'largest', 'concentration', 'top'], brief: top.share >= 10, short: `Biggest holding: ${top.name}, ${pct(top.share)}.` }))
 
@@ -101,7 +114,7 @@ export function buildFacts(d: PortalData): Fact[] {
           '/dashboard/money',
           `Over the last year your portfolio moved ${{ low: 'less than', moderate: 'about as much as', high: 'more than', very_high: 'much more than' }[d.volatility]} ${d.benchmarkName ?? 'the market'}. Its risk level is ${{ low: 'low', moderate: 'medium', high: 'high', very_high: 'very high' }[d.volatility]}.`,
           11,
-          { tags: ['risk', 'volatility', 'safe', 'ups and downs', 'riskometer'] },
+          { tags: ['risk', 'volatility', 'ups and downs', 'riskometer'] },
         ),
       )
     if (d.yearlyReturn !== null)

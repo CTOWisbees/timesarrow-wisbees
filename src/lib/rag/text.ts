@@ -4,7 +4,7 @@
  */
 
 const STOP = new Set(
-  'a an and are as at be but by can do does for from had has have how i if in into is it its me my of on or our so than that the their them then there these they this to up us was we were what when where which who why will with you your about am been being did doing'.split(
+  'a an and are as at be but by can do does for from had has have how i if in into is it its me my of on or our so than that the their them then there these they this to up us was we were what when where which who why will with you your about am been being did doing ok okay'.split(
     ' ',
   ),
 )
@@ -12,7 +12,7 @@ const STOP = new Set(
 /** Each group is one idea; a word from a group also searches for the group's other words, at a lower weight. */
 const GROUPS: string[][] = [
   ['sip', 'systematic', 'monthly', 'instalment', 'installment'],
-  ['rebalance', 'rebalancing', 'drift', 'plan', 'limit'],
+  ['rebalance', 'rebalancing', 'drift'],
   ['harvest', 'harvesting', 'tlh', 'loss', 'tax'],
   ['fee', 'cost', 'charge', 'expense', 'commission', 'ter', 'price', 'pay', 'pricing'],
   ['risk', 'volatility', 'riskometer', 'safe', 'swing'],

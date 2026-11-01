@@ -30,7 +30,7 @@ function TodoScreen() {
       <div className="bg-mint flex items-center gap-3 rounded-2xl p-4 text-sm">
         <ShieldCheck className="text-primary size-5 shrink-0" aria-hidden />
         <p>
-          <b>You stay in charge.</b> We never move your money. Orders are prepared for your own account.
+          <b>You approve every order.</b> We never move your money. Orders are prepared for your own account.
         </p>
       </div>
       {!data.hasPortfolio && <EmptyState title="No suggestions yet" body="Add your holdings to see suggestions." href="/portfolio-scan" cta="Run a Port Scan" />}
