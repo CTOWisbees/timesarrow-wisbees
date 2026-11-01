@@ -3,6 +3,7 @@ import 'server-only'
 import { findApplication } from '@/lib/applications'
 import { CLASS_COLORS, fill } from '@/components/portfolio-scan/shared'
 import type { AnalysisResult } from '@/lib/portfolio/analyze'
+import { ALL_FREE } from '@/lib/portfolio/entitlements'
 import type { PortfolioInput } from '@/lib/portfolio/model'
 import { getPlan, getPortfolio, getViewer, latestResult, listAlerts, listPortfolios, scoreHistory } from '@/lib/portfolio/server/store'
 import { getPortfolioScan } from '@/lib/queries'
@@ -75,7 +76,7 @@ async function loadBase(owner: Owner): Promise<PortalData> {
     getPortfolioScan(),
   ])
 
-  const base: PortalData = { ...empty, goals, decisions, planLabel: PLAN_LABEL[plan] }
+  const base: PortalData = { ...empty, goals, decisions, planLabel: ALL_FREE ? 'Free plan' : PLAN_LABEL[plan] }
   const current = portfolios[0]
   if (!current) {
     if (demoModeEnabled()) return { ...buildSample(), goals, decisions }

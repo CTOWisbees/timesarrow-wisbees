@@ -7,6 +7,13 @@ import type { AnalysisResult } from './analyze'
 import type { Flag } from './rules'
 
 export type Plan = 'anonymous' | 'free' | 'insights' | 'pro'
+
+/**
+ * Every Port Scan feature is free for now: everyone, signed in or not, gets the full analysis. Set
+ * SCAN_ALL_FREE=false to bring the paid plans back; nothing else changes, because the plans, prices and
+ * gating are all still in place.
+ */
+export const ALL_FREE = process.env.SCAN_ALL_FREE !== 'false'
 export const PLAN_RANK: Record<Plan, number> = { anonymous: 0, free: 1, insights: 2, pro: 3 }
 
 export const CARDS = ['overlap', 'drag', 'drawdown', 'returns', 'pdf', 'stress', 'ratios', 'rebalance', 'tax', 'whatif'] as const
@@ -43,6 +50,8 @@ export type CardView = { id: CardId; plan: 'insights' | 'pro'; locked: true; tea
 export type ScanView = {
   portfolioId: string
   plan: Plan
+  /** Every feature is free for now, so nothing is shown as locked or priced. */
+  allFree: boolean
   asOf: string
   benchmark: AnalysisResult['benchmark']
   score: AnalysisResult['score']
@@ -85,6 +94,7 @@ export function toView(portfolioId: string, result: AnalysisResult, plan: Plan, 
   return {
     portfolioId,
     plan,
+    allFree: ALL_FREE,
     asOf: result.asOf,
     benchmark: result.benchmark,
     score: result.score,

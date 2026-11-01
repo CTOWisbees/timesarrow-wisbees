@@ -75,7 +75,7 @@ export function Dashboard({ copy, view: initialView, portfolios, currentId, name
         <div className="min-w-0">
           <p className="text-ink-soft flex items-center gap-2 text-sm">
             {copy.dashboardTitle}
-            <Badge variant={plan === 'pro' || plan === 'insights' ? 'default' : 'secondary'}>{PLAN_LABEL[plan]}</Badge>
+            <Badge variant={!view.allFree && (plan === 'pro' || plan === 'insights') ? 'default' : 'secondary'}>{view.allFree ? 'Free' : PLAN_LABEL[plan]}</Badge>
           </p>
           {editing ? (
             <form
@@ -272,7 +272,7 @@ export function Dashboard({ copy, view: initialView, portfolios, currentId, name
         )}
       </section>
 
-      {demoMode && (
+      {demoMode && !view.allFree && (
         <section className="bg-amber-soft border-amber-line mt-8 rounded-2xl border p-4 text-sm">
           <p className="text-amber-ink font-semibold">Demo mode: switch plan</p>
           <div className="mt-2 flex flex-wrap gap-2">

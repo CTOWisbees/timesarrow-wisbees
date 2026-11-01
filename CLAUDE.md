@@ -70,6 +70,9 @@ chatbot) build on this same app.
 - Free scan: upload (CAS PDF read in the browser, broker CSV/XLSX on the server) or manual entry → review →
   optional details → 0–100 score, five sub-scores, red flags R01–R14, charts. Paid plans (Insights ₹99, Pro ₹199) add
   look-through, drag, drawdown, stress, ratios, rebalance, tax, what-if, PDF, alerts.
+- **Everything is free for now** (`ALL_FREE` in `entitlements.ts`, on unless `SCAN_ALL_FREE=false`): `getPlan` returns `pro` for
+  everyone, so every card, the PDF and alerts are open and nothing shows a lock or a price. The plans, prices and gating are
+  untouched; turn the env var off to bring them back.
 - Engine is pure TypeScript in `src/lib/portfolio/` (metrics, scoring, rules, paid, ingest; unit tested). Server-only
   code (DB, enrichment, uploads, billing, nightly) is in `src/lib/portfolio/server/`.
 - **Gating:** `entitlements.ts#toView` is the only path from a stored result to the browser; locked cards get teasers

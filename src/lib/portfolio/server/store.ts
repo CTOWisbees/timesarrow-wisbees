@@ -8,7 +8,7 @@ import { demoModeEnabled } from '@/lib/supabase/dev-bypass'
 import { getCurrentUser } from '@/lib/supabase/server'
 
 import type { AnalysisResult } from '../analyze'
-import type { PaidResult, Plan } from '../entitlements'
+import { ALL_FREE, type PaidResult, type Plan } from '../entitlements'
 import type { PortfolioInput } from '../model'
 
 const SESSION_COOKIE = 'scan_sid'
@@ -242,6 +242,7 @@ export async function deleteUserData(userId: string) {
 
 /** The viewer's plan. A lapsed paid plan falls back to free; data is never deleted on lapse. */
 export async function getPlan(viewer: Viewer): Promise<Plan> {
+  if (ALL_FREE) return 'pro'
   if (!viewer.userId) return 'anonymous'
   const { rows } = await (await db()).query<{ plan: Plan }>(
     `SELECT plan FROM scan.entitlements WHERE user_id = $1 AND (valid_until IS NULL OR valid_until > now())`,

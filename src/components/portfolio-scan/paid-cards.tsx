@@ -3,7 +3,7 @@
 import { Loader2, Lock } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import type { CardId, CardView, ScanView } from '@/lib/portfolio/entitlements'
+import { type CardId, type CardView, type ScanView } from '@/lib/portfolio/entitlements'
 
 import { PaidCardBody } from './paid-card-body'
 import { fill, type ScanCopy } from './shared'
@@ -26,7 +26,7 @@ export function PlansIntro({ view, copy }: { view: ScanView; copy: ScanCopy }) {
         <h2 id="insights-title" className="text-2xl font-semibold tracking-tight">
           {copy.plansTitle}
         </h2>
-        <p className="text-ink-soft mt-1 max-w-2xl">{copy.plansIntro}</p>
+        <p className="text-ink-soft mt-1 max-w-2xl">{view.allFree ? 'How much each point matters in rupees, and what changes would do. All of it is free for now.' : copy.plansIntro}</p>
       </div>
       {view.paidPending && (
         <p className="text-ink-soft flex items-center gap-2 text-sm">
@@ -69,6 +69,16 @@ export function PaidCards({ view, copy, onUnlock, ids, pair }: Props) {
               </article>
             )
           }
+          if (view.allFree)
+            return (
+              <article key={c.id} className="bg-card flex min-w-0 flex-col gap-3 rounded-3xl border p-5 sm:p-7" aria-busy="true">
+                <h3 className="font-sans text-base font-semibold">{heading(c.id)}</h3>
+                <p className="text-ink-soft flex items-center gap-2 text-sm">
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Working this out…
+                </p>
+              </article>
+            )
           const m = meta(c.id)
           // Fill from the user's data; a template left with gaps falls back to the generic line.
           const filled = fill(m?.teaser, { ...(c.teaser ?? {}), benchmark: view.benchmark.name })
