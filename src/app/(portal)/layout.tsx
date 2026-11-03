@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+import { ChatWidget } from '@/components/chat/chat-widget'
+
 import { sans, serif } from '../fonts'
 
 import '../(frontend)/globals.css'
@@ -16,6 +18,7 @@ export default function PortalRootLayout({ children }: { children: React.ReactNo
     <html lang="en-IN" className={`${sans.variable} ${serif.variable}`}>
       <body className="bg-mist" suppressHydrationWarning>
         {children}
+        <ChatWidget signedIn />
       </body>
     </html>
   )

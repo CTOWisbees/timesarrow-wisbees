@@ -1,4 +1,3 @@
-import { CopilotFab } from '@/components/layout/copilot-fab'
 import { BookCall } from '@/components/sections/book-call/book-call'
 import { Faq } from '@/components/sections/faq'
 import { Gallery } from '@/components/sections/gallery'
@@ -43,7 +42,6 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           icons={resolveToggles('bookCall', home.bookCall.fieldIcons, params)}
         />
       )}
-      <CopilotFab raised={variantPreviewEnabled()} />
     </>
   )
 }

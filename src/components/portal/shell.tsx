@@ -199,14 +199,6 @@ function Frame({ name, planLabel, children }: { name: string; planLabel: string;
       </nav>
       </div>
 
-      <Link
-        href="/dashboard/ask"
-        className="bg-primary text-primary-foreground fixed right-4 bottom-20 z-30 flex items-center gap-2 rounded-full px-4 py-3 font-bold shadow-[0_4px_14px_rgb(0_0_0/0.25)] lg:hidden"
-      >
-        <MessageCircle className="size-5" aria-hidden />
-        Ask
-      </Link>
-
       {toast && (
         <div role="status" className="bg-ink text-paper fixed bottom-24 left-1/2 z-60 max-w-[90vw] -translate-x-1/2 rounded-xl px-5 py-3 font-semibold shadow-lg lg:bottom-8">
           {toast}

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import Link from 'next/link'
 
+import { ChatWidget } from '@/components/chat/chat-widget'
 import { Logo } from '@/components/layout/logo'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
@@ -64,6 +65,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
           {children}
         </main>
         <SiteFooter logo={logo} settings={settings} sebi={sebi} />
+        <ChatWidget signedIn={Boolean(account)} />
         <Analytics />
       </body>
     </html>

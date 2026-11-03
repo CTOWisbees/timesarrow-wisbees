@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { ChatWidget } from '@/components/chat/chat-widget'
 import { Logo } from '@/components/layout/logo'
 import { getSebiDisclosure, getSiteSettings } from '@/lib/queries'
+import { getCurrentUser } from '@/lib/supabase/server'
 
 import { sans, serif } from '../fonts'
 
@@ -22,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Root layout for the signed-in app area: login, onboarding, and later the dashboard. */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const [settings, sebi] = await Promise.all([getSiteSettings(), getSebiDisclosure()])
+  const [settings, sebi, user] = await Promise.all([getSiteSettings(), getSebiDisclosure(), getCurrentUser()])
 
   return (
     <html lang="en-IN" data-scroll-behavior="smooth" className={`${sans.variable} ${serif.variable}`}>
@@ -54,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
           </div>
         </footer>
+        <ChatWidget signedIn={Boolean(user)} />
       </body>
     </html>
   )

@@ -143,6 +143,9 @@ async function loadBase(owner: Owner): Promise<PortalData> {
   return data
 }
 
+/** A client with nothing: used when someone who is not signed in asks the Copilot a general question. */
+export const emptyPortalData = () => emptyData()
+
 function emptyData(): PortalData {
   return {
     sample: false,
